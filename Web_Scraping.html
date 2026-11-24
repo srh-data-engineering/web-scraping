@@ -1,0 +1,2432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Scraping — Data Engineering Guide</title>
+<style>
+  :root {
+    --srh-orange: #c8390a;
+    --srh-orange-light: #fff0eb;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface2: #f1f3f5;
+    --border: #dee2e6;
+    --text: #212529;
+    --muted: #6c757d;
+    --green: #0d7a4e;
+    --green-bg: #e6f4ee;
+    --yellow: #856404;
+    --yellow-bg: #fff8e1;
+    --blue: #1557a0;
+    --blue-bg: #e8f0fb;
+    --purple: #5a3d99;
+    --purple-bg: #f0eaf8;
+    --teal: #0d6b6b;
+    --teal-bg: #e4f5f5;
+    --red: #b91c1c;
+    --red-bg: #fef2f2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    scroll-behavior: smooth;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #fff7f4 0%, #fdeee8 100%);
+    border-bottom: 4px solid var(--srh-orange);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+  }
+  .hero h1 { font-size: 2.4rem; color: var(--srh-orange); letter-spacing: -0.5px; }
+  .hero .subtitle { color: var(--muted); margin-top: .4rem; font-size: 1rem; }
+  .badge-row { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+  .badge {
+    background: var(--srh-orange-light); border: 1.5px solid var(--srh-orange);
+    color: var(--srh-orange); border-radius: 20px; padding: .25rem .9rem;
+    font-size: .78rem; font-weight: 700;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper { display: flex; max-width: 1400px; margin: 0 auto; }
+
+  nav.sidebar {
+    width: 230px; min-width: 230px; padding: 1.5rem .9rem;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border);
+  }
+  nav.sidebar h3 {
+    font-size: .68rem; letter-spacing: 2px; color: var(--muted);
+    text-transform: uppercase; margin-bottom: .7rem; padding-left: .5rem;
+  }
+  nav.sidebar a {
+    display: block; padding: .38rem .6rem; border-radius: 6px;
+    color: var(--muted); text-decoration: none; font-size: .83rem;
+    transition: all .15s;
+  }
+  nav.sidebar a:hover, nav.sidebar a.active {
+    background: var(--srh-orange-light); color: var(--srh-orange); font-weight: 600;
+  }
+  nav.sidebar .nav-section { margin-top: 1rem; }
+
+  main { flex: 1; padding: 2rem 2.5rem; max-width: 1120px; }
+
+  /* ── SECTION HEADERS ── */
+  .section-title {
+    font-size: 1.45rem; color: var(--srh-orange);
+    border-bottom: 2px solid #f0cfc4;
+    padding-bottom: .5rem; margin: 2.8rem 0 1.2rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .section-title .icon { font-size: 1.25rem; }
+
+  /* ── TERM CARDS ── */
+  .term-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+
+  .term-card {
+    background: var(--surface); border-radius: 10px;
+    border: 1px solid var(--border); border-left: 4px solid var(--srh-orange);
+    padding: 1rem 1.2rem; transition: box-shadow .2s;
+  }
+  .term-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.09); }
+  .term-card.green  { border-left-color: var(--green);  background: var(--green-bg); }
+  .term-card.blue   { border-left-color: var(--blue);   background: var(--blue-bg); }
+  .term-card.purple { border-left-color: var(--purple); background: var(--purple-bg); }
+  .term-card.teal   { border-left-color: var(--teal);   background: var(--teal-bg); }
+  .term-card.yellow { border-left-color: var(--yellow); background: var(--yellow-bg); }
+  .term-card.red    { border-left-color: var(--red);    background: var(--red-bg); }
+
+  .term-card .term-name { font-size: 1rem; font-weight: 700; margin-bottom: .3rem; color: var(--text); }
+  .term-card .term-tag  { font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+  .term-card p  { font-size: .87rem; color: #444; }
+  .term-card ul { font-size: .85rem; color: #444; padding-left: 1.2rem; margin-top: .4rem; }
+  .term-card li { margin-bottom: .25rem; }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; font-size: .88rem; }
+  .callout.tip  { background: var(--green-bg);  border-left: 4px solid var(--green); }
+  .callout.warn { background: var(--yellow-bg); border-left: 4px solid var(--yellow); }
+  .callout.info { background: var(--blue-bg);   border-left: 4px solid var(--blue); }
+  .callout strong { color: var(--text); }
+  .callout p { margin-top: .4rem; color: #444; }
+
+  /* ── COMPARE TABLE ── */
+  .compare-wrapper { overflow-x: auto; margin: 1rem 0; border-radius: 10px; border: 1px solid var(--border); }
+  table.compare { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  table.compare th {
+    padding: .9rem 1rem; text-align: left; background: #fff4f0;
+    color: var(--srh-orange); border-bottom: 2px solid #f0cfc4; font-weight: 700;
+  }
+  table.compare td { padding: .75rem 1rem; border-bottom: 1px solid var(--border); color: #333; vertical-align: top; }
+  table.compare tr:last-child td { border-bottom: none; }
+  table.compare tr:nth-child(even) td { background: #fafafa; }
+  table.compare .win  { color: var(--green); font-weight: 600; }
+  table.compare .lose { color: var(--red); }
+  table.compare .dim  { color: var(--muted); font-style: italic; }
+
+  /* ── TOOL GRID ── */
+  .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .8rem; margin-top: .8rem; }
+  .tool-item { background: var(--surface2); border-radius: 8px; padding: .75rem 1rem; border-left: 3px solid var(--blue); }
+  .tool-item.green  { border-left-color: var(--green); }
+  .tool-item.orange { border-left-color: var(--srh-orange); }
+  .tool-item.purple { border-left-color: var(--purple); }
+  .tool-item.teal   { border-left-color: var(--teal); }
+  .tool-item.yellow { border-left-color: var(--yellow); }
+  .tool-item.red    { border-left-color: var(--red); }
+  .tool-item strong { color: var(--text); font-size: .88rem; }
+  .tool-item span   { font-size: .78rem; color: #555; display: block; margin-top: .25rem; line-height: 1.5; }
+
+  /* ── DIAGRAM CONTAINER ── */
+  .diagram-container {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.6rem 1.8rem; margin: 1rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .diagram-container h3 {
+    font-size: 1.1rem; color: var(--text); margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .diagram-container h3 .diag-badge {
+    background: var(--srh-orange); color: #fff;
+    font-size: .7rem; border-radius: 5px; padding: .15rem .6rem; font-weight: 700;
+  }
+
+  /* ── INTERACTIVE CONTROLS ── */
+  .diag-controls { display:flex; gap:.6rem; align-items:center; margin-top:1rem; flex-wrap:wrap; }
+  .diag-btn {
+    padding:.4rem 1rem; border-radius:6px;
+    border:1.5px solid var(--srh-orange); background:var(--srh-orange);
+    color:#fff; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s;
+  }
+  .diag-btn:hover { background:#a82d08; border-color:#a82d08; }
+  .diag-btn.sec { background:#fff; color:var(--srh-orange); }
+  .diag-btn.sec:hover { background:var(--srh-orange-light); }
+  .diag-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .diag-hint { font-size:.78rem; color:var(--muted); font-style:italic; margin-left:.2rem; }
+
+  /* Step progress bar */
+  .step-progress { display:flex; gap:.3rem; margin:.8rem 0 .4rem; }
+  .step-ps { height:5px; flex:1; background:var(--border); border-radius:4px; transition:background .3s; }
+  .step-ps.done { background:#0d7a4e; }
+  .step-ps.active { background:var(--srh-orange); }
+
+  /* Step info box */
+  .step-info {
+    background:var(--surface2); border-radius:9px; padding:.9rem 1.1rem;
+    margin-top:.8rem; font-size:.88rem; color:#333;
+    border-left:4px solid var(--srh-orange); min-height:62px;
+  }
+  .step-info .si-label {
+    font-size:.68rem; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--srh-orange); font-weight:700; margin-bottom:.35rem;
+  }
+
+  /* Step elements transition */
+  .step-el { transition:box-shadow .3s, opacity .3s; }
+  .step-el.s-active { box-shadow:0 0 0 3px var(--srh-orange) !important; }
+  .step-el.s-dim { opacity:.28; }
+
+  /* ── HTTP CYCLE DIAGRAM ── */
+  .http-layout { display:grid; grid-template-columns:1fr 60px 1fr; gap:.5rem; align-items:start; }
+  .http-col-label { font-size:.63rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:.5rem; text-align:center; }
+  .http-mid-label { font-size:.63rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:.5rem; text-align:center; }
+  .http-box {
+    border-radius:9px; border:1.5px solid; padding:.7rem .9rem;
+    background:var(--surface); margin-bottom:.5rem; font-size:.8rem;
+  }
+  .http-box.client { border-color:#1557a0; background:var(--blue-bg); }
+  .http-box.network { border-color:#0d6b6b; background:var(--teal-bg); text-align:center; }
+  .http-box.server { border-color:#5a3d99; background:var(--purple-bg); }
+  .http-box .hb-title { font-weight:700; font-size:.85rem; margin-bottom:.35rem; }
+  .http-box.client .hb-title { color:var(--blue); }
+  .http-box.server .hb-title { color:var(--purple); }
+  .http-box.network .hb-title { color:var(--teal); }
+  .http-box .hb-items { display:flex; flex-direction:column; gap:.3rem; }
+  .hb-chip {
+    border-radius:5px; padding:.28rem .6rem; font-size:.74rem;
+    font-weight:600; text-align:center; border:1px solid;
+  }
+  .chip-req  { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+  .chip-url  { background:#ede9fe; color:#5b21b6; border-color:#c4b5fd; }
+  .chip-hdr  { background:#fef3c7; color:#92400e; border-color:#fcd34d; }
+  .chip-res  { background:#d1fae5; color:#065f46; border-color:#6ee7b7; }
+  .chip-html { background:#fce7f3; color:#9d174d; border-color:#f9a8d4; }
+  .chip-dns  { background:#e0f2fe; color:#0369a1; border-color:#7dd3fc; }
+  .chip-tcp  { background:#fef3c7; color:#92400e; border-color:#fcd34d; }
+  .http-mid-arrow { text-align:center; font-size:1.3rem; color:var(--srh-orange); padding:.5rem 0; }
+
+  /* ── SCRAPING PIPELINE DIAGRAM ── */
+  .pipeline-flow { display:flex; flex-direction:column; gap:.4rem; }
+  .pipe-step {
+    border-radius:9px; border:1.5px solid var(--border);
+    padding:.7rem 1rem; background:var(--surface); font-size:.82rem;
+    display:flex; align-items:center; gap:.8rem;
+  }
+  .pipe-step .ps-num {
+    width:28px; height:28px; border-radius:50%; background:var(--srh-orange);
+    color:#fff; font-weight:700; font-size:.78rem; display:flex;
+    align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .pipe-step .ps-title { font-weight:700; color:var(--text); font-size:.85rem; }
+  .pipe-step .ps-desc { font-size:.78rem; color:var(--muted); display:block; }
+  .pipe-arrow { text-align:center; color:var(--srh-orange); font-size:1.1rem; }
+
+  /* ── DOM TREE DIAGRAM ── */
+  .dom-layout { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  .dom-panel { background:var(--surface2); border-radius:10px; padding:1rem; border:1px solid var(--border); }
+  .dom-panel .dp-title { font-size:.72rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:.8rem; }
+  .dom-code { font-family:'Consolas','Courier New',monospace; font-size:.78rem; line-height:1.7; }
+  .dom-code .dc-line { padding:.05rem .3rem; border-radius:3px; transition:background .2s; display:block; }
+  .dom-code .dc-line.dom-hl { background:#fff0eb; outline:1.5px solid var(--srh-orange); }
+  .dom-tree { font-size:.8rem; }
+  .tree-node { padding:.18rem 0; }
+  .tree-node .tn-box {
+    display:inline-flex; align-items:center; gap:.35rem;
+    padding:.22rem .6rem; border-radius:5px; border:1px solid var(--border);
+    background:#fff; font-size:.77rem; cursor:default; transition:all .2s;
+  }
+  .tree-node .tn-box.dom-hl { background:#fff0eb; border-color:var(--srh-orange); font-weight:700; color:var(--srh-orange); }
+  .tree-indent { padding-left:1.4rem; border-left:2px solid var(--border); margin-left:.8rem; }
+  .tn-type { font-size:.62rem; padding:.1rem .3rem; border-radius:3px; font-weight:700; }
+  .tn-elem { background:#dbeafe; color:#1e40af; }
+  .tn-text { background:#d1fae5; color:#065f46; }
+  .tn-attr { background:#fce7f3; color:#9d174d; }
+
+  .dom-btn-row { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.8rem; }
+  .dom-btn {
+    padding:.35rem .85rem; border-radius:6px; font-size:.78rem; font-weight:600;
+    cursor:pointer; border:1.5px solid; transition:all .15s;
+  }
+  .dom-btn.db-elem { border-color:#1557a0; color:#1557a0; background:#fff; }
+  .dom-btn.db-elem.active, .dom-btn.db-elem:hover { background:var(--blue-bg); }
+  .dom-btn.db-text { border-color:#0d7a4e; color:#0d7a4e; background:#fff; }
+  .dom-btn.db-text.active, .dom-btn.db-text:hover { background:var(--green-bg); }
+  .dom-btn.db-attr { border-color:#9d174d; color:#9d174d; background:#fff; }
+  .dom-btn.db-attr.active, .dom-btn.db-attr:hover { background:#fce7f3; }
+  .dom-btn.db-all { border-color:var(--srh-orange); color:var(--srh-orange); background:#fff; }
+  .dom-btn.db-all.active, .dom-btn.db-all:hover { background:var(--srh-orange-light); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background:#1e1e2e; border-radius:10px; padding:1.2rem 1.4rem;
+    margin:1rem 0; font-family:'Consolas','Courier New',monospace;
+    font-size:.82rem; line-height:1.75; overflow-x:auto; color:#cdd6f4;
+  }
+  .code-block .cb-label {
+    display:inline-block; background:rgba(255,255,255,.08);
+    color:#a6e3a1; font-size:.68rem; letter-spacing:1px; border-radius:4px;
+    padding:.12rem .55rem; margin-bottom:.7rem; font-weight:600;
+  }
+  .code-block .kw  { color:#cba6f7; }
+  .code-block .str { color:#a6e3a1; }
+  .code-block .fn  { color:#89b4fa; }
+  .code-block .cm  { color:#6c7086; font-style:italic; }
+  .code-block .cls { color:#f9e2af; }
+  .code-block .num { color:#fab387; }
+  .code-block .op  { color:#89dceb; }
+
+  /* ── ARCH FLOW ── */
+  .arch-flow { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: .5rem 0 1rem; }
+  .arch-node {
+    background: var(--surface2); border-radius: 8px; padding: .8rem .9rem;
+    min-width: 130px; text-align: center; font-size: .78rem;
+    border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .arch-node .node-title { font-weight: 700; color: var(--text); margin-bottom: .3rem; font-size: .83rem; }
+  .arch-node .node-items { color: var(--muted); font-size: .73rem; line-height: 1.5; }
+  .arch-arrow { display: flex; align-items: center; color: var(--srh-orange); font-size: 1.3rem; padding: 0 .4rem; flex-shrink: 0; }
+
+  /* ── ROBOTS.TXT EXAMPLE ── */
+  .robots-example {
+    background:#1e1e2e; border-radius:10px; padding:1.2rem 1.4rem;
+    margin:1rem 0; font-family:'Consolas','Courier New',monospace;
+    font-size:.84rem; line-height:1.8; color:#cdd6f4;
+  }
+  .robots-example .r-comment { color:#6c7086; font-style:italic; }
+  .robots-example .r-key { color:#cba6f7; }
+  .robots-example .r-val { color:#a6e3a1; }
+  .robots-example .r-disallow { color:#f38ba8; }
+  .robots-example .r-allow { color:#a6e3a1; }
+
+  /* ── SELECTOR BADGE ── */
+  .sel-badge {
+    display:inline-block; font-family:'Consolas','Courier New',monospace;
+    background:#1e1e2e; color:#89b4fa; font-size:.78rem;
+    padding:.15rem .55rem; border-radius:4px; margin:0 .15rem;
+  }
+
+  /* ── FOOTER ── */
+  footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--border); background: var(--surface); margin-top: 2rem; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+  /* ── HANDS-ON LAB STYLES ── */
+  .phase-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.6rem 1.8rem; margin-bottom: 1.8rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: .9rem; margin-bottom: 1rem;
+  }
+  .phase-num {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--srh-orange);
+    color: #fff; font-weight: 800; font-size: 1rem; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .phase-num.prereq { background: var(--blue); }
+  .phase-num.ext    { background: var(--purple); }
+  .phase-title { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .phase-subtitle { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+
+  .checklist { list-style: none; padding: 0; margin: .6rem 0; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: .6rem;
+    font-size: .88rem; color: #333; padding: .3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: '☐'; font-size: 1rem; color: var(--srh-orange);
+    flex-shrink: 0; line-height: 1.4;
+  }
+  .checklist li.done::before { content: '☑'; color: var(--green); }
+
+  .prereq-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .prereq-card {
+    border-radius: 10px; border: 1px solid var(--border);
+    padding: 1rem 1.2rem; background: var(--surface);
+  }
+  .prereq-card.pc-green  { border-left: 4px solid var(--green);  background: var(--green-bg); }
+  .prereq-card.pc-blue   { border-left: 4px solid var(--blue);   background: var(--blue-bg); }
+  .prereq-card.pc-orange { border-left: 4px solid var(--srh-orange); background: var(--srh-orange-light); }
+  .prereq-card.pc-purple { border-left: 4px solid var(--purple); background: var(--purple-bg); }
+  .prereq-card.pc-teal   { border-left: 4px solid var(--teal);   background: var(--teal-bg); }
+  .prereq-card .pc-label { font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+  .prereq-card .pc-title { font-weight: 700; font-size: .95rem; color: var(--text); margin-bottom: .5rem; }
+  .prereq-card p  { font-size: .85rem; color: #444; }
+  .prereq-card ul { font-size: .83rem; color: #444; padding-left: 1.2rem; margin-top: .4rem; }
+  .prereq-card li { margin-bottom: .3rem; }
+
+  .verify-block {
+    background: #0d1117; border-radius: 10px; padding: 1rem 1.4rem;
+    margin: .8rem 0; font-family: 'Consolas','Courier New', monospace;
+    font-size: .82rem; line-height: 1.8; color: #e6edf3; overflow-x: auto;
+  }
+  .verify-block .vb-label {
+    display: inline-block; background: rgba(255,255,255,.08);
+    color: #7ee787; font-size: .68rem; letter-spacing: 1px; border-radius: 4px;
+    padding: .1rem .5rem; margin-bottom: .6rem; font-weight: 600;
+  }
+  .verify-block .vb-cmd  { color: #79c0ff; }
+  .verify-block .vb-out  { color: #7ee787; }
+  .verify-block .vb-comment { color: #8b949e; font-style: italic; }
+  .verify-block .vb-err  { color: #f85149; }
+
+  .phase-steps { counter-reset: pstep; list-style: none; padding: 0; margin: .8rem 0; }
+  .phase-steps li {
+    counter-increment: pstep; display: flex; gap: .8rem;
+    align-items: flex-start; margin-bottom: .9rem; font-size: .88rem; color: #333;
+  }
+  .phase-steps li::before {
+    content: counter(pstep); min-width: 24px; height: 24px; border-radius: 50%;
+    background: var(--srh-orange-light); color: var(--srh-orange);
+    border: 1.5px solid var(--srh-orange); font-weight: 700; font-size: .75rem;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    margin-top: .1rem;
+  }
+
+  .expected-box {
+    background: var(--green-bg); border-left: 4px solid var(--green);
+    border-radius: 8px; padding: .9rem 1.2rem; margin: .8rem 0; font-size: .87rem;
+  }
+  .expected-box .eb-label {
+    font-size: .68rem; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--green); font-weight: 700; margin-bottom: .35rem;
+  }
+  .expected-box code { font-family: 'Consolas','Courier New',monospace; font-size: .85rem; }
+
+  .phase-divider {
+    display: flex; align-items: center; gap: .8rem; margin: 1.5rem 0;
+    color: var(--srh-orange); font-size: .78rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .phase-divider::before, .phase-divider::after {
+    content: ''; flex: 1; height: 1px; background: #f0cfc4;
+  }
+
+  .lab-summary-table { width: 100%; border-collapse: collapse; font-size: .86rem; margin: 1rem 0; }
+  .lab-summary-table th {
+    padding: .75rem 1rem; background: #fff4f0; color: var(--srh-orange);
+    border-bottom: 2px solid #f0cfc4; text-align: left; font-weight: 700;
+  }
+  .lab-summary-table td { padding: .65rem 1rem; border-bottom: 1px solid var(--border); color: #333; }
+  .lab-summary-table tr:last-child td { border-bottom: none; }
+  .lab-summary-table tr:nth-child(even) td { background: #fafafa; }
+  .lab-summary-table .slide-ref {
+    font-size: .75rem; background: var(--srh-orange-light); color: var(--srh-orange);
+    border-radius: 4px; padding: .1rem .5rem; font-weight: 700; white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Web Data — From Web Services to Web Scraping</h1>
+  <div class="subtitle">Data Engineering 1 &nbsp;·&nbsp; SRH Hochschule Heidelberg</div>
+  <div class="badge-row">
+    <span class="badge">Web Scraping</span>
+    <span class="badge">CommonCrawl</span>
+    <span class="badge">BeautifulSoup · Scrapy</span>
+    <span class="badge">Selenium · Playwright</span>
+    <span class="badge">Interactive Diagrams</span>
+    <span class="badge">Legal &amp; Ethical</span>
+    <span class="badge" style="background:#e8f0fb;border-color:#1557a0;color:#1557a0;">⚙ Prerequisites</span>
+    <span class="badge" style="background:#e6f4ee;border-color:#0d7a4e;color:#0d7a4e;">🧪 Hands-On Lab</span>
+  </div>
+</div>
+
+<div class="wrapper">
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <h3>Contents</h3>
+    <a href="#foundations">Foundations</a>
+    <a href="#arch-diagrams">Architecture Diagrams</a>
+    <a href="#web-pages">How Web Pages Work</a>
+    <a href="#static-dynamic">Static vs Dynamic</a>
+    <a href="#python-tools">Python Tools</a>
+    <a href="#browser-automation">Browser Automation</a>
+    <a href="#tool-comparison">Tool Comparison</a>
+    <a href="#legal-ethical">Legal &amp; Ethical</a>
+    <a href="#key-concepts">Key Concepts</a>
+    <a href="#glossary">Glossary</a>
+  </div>
+  <div class="nav-section">
+    <h3>Lab</h3>
+    <a href="#prerequisites">⚙ Prerequisites (3 cmds)</a>
+    <a href="#hands-on-lab">🧪 Hands-On Lab</a>
+    <a href="#phase0">↳ Phase 0 — Legal Check</a>
+    <a href="#phase1">↳ Phase 1 — DOM Inspect</a>
+    <a href="#phase2">↳ Phase 2 — Static Scrape</a>
+    <a href="#phase3">↳ Phase 3 — Static Fails</a>
+    <a href="#phase4">↳ Phase 4 — Playwright</a>
+    <a href="#phase5">↳ Phase 5 — Pagination</a>
+    <a href="#phase6">↳ Phase 6 — Save CSV</a>
+    <a href="#phase7">↳ Phase 7 — Extensions</a>
+    <a href="#submission">↳ Submission Checklist</a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+
+<!-- ══════════════════════════════════════
+     SECTION 1 — FOUNDATIONS
+══════════════════════════════════════ -->
+<h2 class="section-title" id="foundations"><span class="icon">🌐</span> Foundations</h2>
+
+<div class="term-grid">
+
+  <div class="term-card">
+    <div class="term-tag">Definition</div>
+    <div class="term-name">Web Scraping</div>
+    <p>Automated extraction of data from websites by simulating HTTP requests or browser interactions. Unlike manual copy-paste, scrapers programmatically parse the HTML returned by a server and extract structured data.</p>
+    <ul>
+      <li>Treats every web page as a data source</li>
+      <li>Useful when no API exists or the API is restricted</li>
+      <li>Output: structured datasets (CSV, JSON, database)</li>
+    </ul>
+  </div>
+
+  <div class="term-card green">
+    <div class="term-tag">Definition</div>
+    <div class="term-name">Web Crawling</div>
+    <p>Systematically following hyperlinks across the web to discover and index pages. A <strong>crawler</strong> (or <em>spider</em>) starts with a seed URL list, downloads pages, extracts links, and queues them for further visits.</p>
+    <ul>
+      <li>Search engine indexers (Googlebot) are crawlers</li>
+      <li>Crawling discovers <em>which</em> pages exist; scraping extracts data <em>from</em> them</li>
+      <li>Scrapy combines both: crawl + scrape in one framework</li>
+    </ul>
+  </div>
+
+  <div class="term-card blue">
+    <div class="term-tag">Web Archive</div>
+    <div class="term-name">CommonCrawl</div>
+    <p>An open, non-profit repository of web crawl data since 2008. It is one of the largest publicly available datasets on the internet and a primary source for training large language models.</p>
+    <ul>
+      <li><strong>240 billion</strong> pages crawled; <strong>70 billion</strong> unique URLs</li>
+      <li><strong>7 petabytes</strong> of raw data, stored in WARC/ARC format</li>
+      <li>GPT-3/4 training data includes filtered CommonCrawl subsets</li>
+      <li>Monthly crawls; freely downloadable from Amazon S3</li>
+    </ul>
+  </div>
+
+  <div class="term-card purple">
+    <div class="term-tag">Web Archive</div>
+    <div class="term-name">Wayback Machine</div>
+    <p>The Internet Archive's service that stores historical snapshots of websites since 1996. It provides time-travel access to how any URL looked at a specific date.</p>
+    <ul>
+      <li><strong>735 billion</strong> web pages archived</li>
+      <li>Useful for recovering deleted content, tracking content changes over time</li>
+      <li><strong>Wayback API:</strong> <code>https://archive.org/wayback/available?url=&lt;url&gt;&amp;timestamp=&lt;YYYYMMDD&gt;</code></li>
+      <li>Returns the closest available snapshot URL in JSON</li>
+    </ul>
+  </div>
+
+  <div class="term-card teal">
+    <div class="term-tag">File Formats</div>
+    <div class="term-name">WARC / ARC Format</div>
+    <p>Container file formats used by web archives to store raw HTTP request/response pairs alongside metadata.</p>
+    <ul>
+      <li><strong>ARC (Archive):</strong> Early format used by CommonCrawl; stores response content</li>
+      <li><strong>WARC (Web ARChive):</strong> ISO standard successor; stores full request + response + metadata</li>
+      <li>Each WARC record has: type, target URI, date, content-type, block content</li>
+      <li>CommonCrawl distributes data as compressed WARC files</li>
+    </ul>
+  </div>
+
+  <div class="term-card yellow">
+    <div class="term-tag">Architecture</div>
+    <div class="term-name">Scraping vs Crawling</div>
+    <p>Often used interchangeably, but they represent different operations in the data collection pipeline.</p>
+    <ul>
+      <li><strong>Crawling:</strong> Navigate the web graph — follow links, discover pages</li>
+      <li><strong>Scraping:</strong> Extract structured data from a specific page</li>
+      <li>A <em>scrawler</em> (scraper + crawler) does both: crawl a site's structure and scrape each page</li>
+      <li>Scrapy, Crawlee, and custom asyncio scripts are typical scrawler architectures</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 2 — ARCHITECTURE DIAGRAMS
+══════════════════════════════════════ -->
+<h2 class="section-title" id="arch-diagrams"><span class="icon">📊</span> Architecture Diagrams</h2>
+
+<!-- DIAGRAM 1: HTTP REQUEST-RESPONSE CYCLE -->
+<div class="diagram-container">
+  <h3>HTTP Request–Response Cycle <span class="diag-badge">INTERACTIVE</span></h3>
+
+  <div class="http-layout">
+    <div>
+      <div class="http-col-label">Client (Browser / Script)</div>
+      <div class="http-box client step-el" id="http-client">
+        <div class="hb-title">Client</div>
+        <div class="hb-items">
+          <span class="hb-chip chip-req step-el" id="http-req">GET Request</span>
+          <span class="hb-chip chip-url step-el" id="http-url">URL + Path</span>
+          <span class="hb-chip chip-hdr step-el" id="http-hdrs">Headers (User-Agent, Accept)</span>
+        </div>
+      </div>
+      <div class="http-box client step-el" id="http-parse" style="margin-top:.5rem">
+        <div class="hb-title">Parser</div>
+        <div class="hb-items">
+          <span class="hb-chip chip-html step-el" id="http-bs4">BeautifulSoup / lxml</span>
+          <span class="hb-chip chip-req step-el" id="http-sel">CSS / XPath selectors</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="http-mid-label">Network</div>
+      <div class="http-box network step-el" id="http-dns">
+        <div class="hb-title">DNS</div>
+        <span style="font-size:.72rem;color:#555">domain → IP</span>
+      </div>
+      <div class="http-mid-arrow">↕</div>
+      <div class="http-box network step-el" id="http-tcp">
+        <div class="hb-title">TCP</div>
+        <span style="font-size:.72rem;color:#555">3-way handshake</span>
+      </div>
+      <div class="http-mid-arrow">↕</div>
+      <div class="http-box network step-el" id="http-tls">
+        <div class="hb-title">TLS</div>
+        <span style="font-size:.72rem;color:#555">HTTPS encrypt</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="http-col-label">Server (Web / App)</div>
+      <div class="http-box server step-el" id="http-server">
+        <div class="hb-title">Web Server</div>
+        <div class="hb-items">
+          <span class="hb-chip chip-res step-el" id="http-status">200 OK / 404 / 403 / 429</span>
+          <span class="hb-chip chip-html step-el" id="http-body">HTML Body</span>
+          <span class="hb-chip chip-hdr step-el" id="http-reshdr">Response Headers</span>
+        </div>
+      </div>
+      <div class="http-box server step-el" id="http-dyn" style="margin-top:.5rem">
+        <div class="hb-title">Dynamic Content</div>
+        <div class="hb-items">
+          <span class="hb-chip chip-url step-el" id="http-js">JavaScript (AJAX)</span>
+          <span class="hb-chip chip-req step-el" id="http-spa">SPA / React / Vue</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-progress" id="http-prog">
+    <div class="step-ps" id="hps0"></div>
+    <div class="step-ps" id="hps1"></div>
+    <div class="step-ps" id="hps2"></div>
+    <div class="step-ps" id="hps3"></div>
+    <div class="step-ps" id="hps4"></div>
+    <div class="step-ps" id="hps5"></div>
+  </div>
+  <div class="step-info" id="http-info">
+    <div class="si-label" id="http-info-lbl">Ready</div>
+    <div id="http-info-txt">Click <strong>Next Step</strong> to walk through an HTTP request-response cycle.</div>
+  </div>
+  <div class="diag-controls">
+    <button class="diag-btn sec" id="http-prev" onclick="httpStep(-1)" disabled>◀ Prev</button>
+    <button class="diag-btn" id="http-next" onclick="httpStep(1)">Next Step ▶</button>
+    <button class="diag-btn sec" id="http-auto" onclick="httpAuto()">▶ Auto</button>
+    <button class="diag-btn sec" onclick="httpReset()">↺ Reset</button>
+    <span class="diag-hint" id="http-step-counter">Step 0 / 6</span>
+  </div>
+</div>
+
+<!-- DIAGRAM 2: WEB SCRAPING PIPELINE -->
+<div class="diagram-container">
+  <h3>Web Scraping Pipeline <span class="diag-badge">INTERACTIVE</span></h3>
+
+  <div class="pipeline-flow">
+    <div class="pipe-step step-el" id="pipe0">
+      <div class="ps-num">1</div>
+      <div>
+        <div class="ps-title">Define Target &amp; Scope</div>
+        <span class="ps-desc">Identify URLs, data fields, recurrence (one-shot vs scheduled)</span>
+      </div>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-step step-el" id="pipe1">
+      <div class="ps-num">2</div>
+      <div>
+        <div class="ps-title">Send HTTP Request</div>
+        <span class="ps-desc">requests.get() with headers, session management, retries</span>
+      </div>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-step step-el" id="pipe2">
+      <div class="ps-num">3</div>
+      <div>
+        <div class="ps-title">Handle Response</div>
+        <span class="ps-desc">Check status code (200/403/429), handle redirects, rate-limit delays</span>
+      </div>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-step step-el" id="pipe3">
+      <div class="ps-num">4</div>
+      <div>
+        <div class="ps-title">Parse HTML / DOM</div>
+        <span class="ps-desc">BeautifulSoup, lxml, or browser engine (Selenium/Playwright)</span>
+      </div>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-step step-el" id="pipe4">
+      <div class="ps-num">5</div>
+      <div>
+        <div class="ps-title">Extract Data</div>
+        <span class="ps-desc">CSS selectors, XPath, regex; find_all(), select(), get_text()</span>
+      </div>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-step step-el" id="pipe5">
+      <div class="ps-num">6</div>
+      <div>
+        <div class="ps-title">Follow Links (Crawl)</div>
+        <span class="ps-desc">Enqueue discovered URLs; respect depth limits &amp; robots.txt</span>
+      </div>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-step step-el" id="pipe6">
+      <div class="ps-num">7</div>
+      <div>
+        <div class="ps-title">Store &amp; Export</div>
+        <span class="ps-desc">CSV, JSON, database; Scrapy item pipelines, deduplication</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-progress" id="pipe-prog">
+    <div class="step-ps" id="pps0"></div>
+    <div class="step-ps" id="pps1"></div>
+    <div class="step-ps" id="pps2"></div>
+    <div class="step-ps" id="pps3"></div>
+    <div class="step-ps" id="pps4"></div>
+    <div class="step-ps" id="pps5"></div>
+    <div class="step-ps" id="pps6"></div>
+  </div>
+  <div class="step-info" id="pipe-info">
+    <div class="si-label" id="pipe-info-lbl">Ready</div>
+    <div id="pipe-info-txt">Click <strong>Next Step</strong> to walk through the scraping pipeline.</div>
+  </div>
+  <div class="diag-controls">
+    <button class="diag-btn sec" id="pipe-prev" onclick="pipeStep(-1)" disabled>◀ Prev</button>
+    <button class="diag-btn" id="pipe-next" onclick="pipeStep(1)">Next Step ▶</button>
+    <button class="diag-btn sec" id="pipe-auto" onclick="pipeAuto()">▶ Auto</button>
+    <button class="diag-btn sec" onclick="pipeReset()">↺ Reset</button>
+    <span class="diag-hint" id="pipe-step-counter">Step 0 / 7</span>
+  </div>
+</div>
+
+<!-- DIAGRAM 3: DOM TREE EXPLORER -->
+<div class="diagram-container">
+  <h3>DOM Tree Explorer <span class="diag-badge">INTERACTIVE</span></h3>
+  <p style="font-size:.85rem;color:#555;margin-bottom:1rem">Select a node type to highlight matching nodes in both the HTML source and the tree view.</p>
+
+  <div class="dom-btn-row">
+    <button class="dom-btn db-elem" onclick="domHighlight('element')">Element Nodes</button>
+    <button class="dom-btn db-text" onclick="domHighlight('text')">Text Nodes</button>
+    <button class="dom-btn db-attr" onclick="domHighlight('attr')">Attribute Nodes</button>
+    <button class="dom-btn db-all active" onclick="domHighlight('all')">Show All</button>
+  </div>
+
+  <div class="dom-layout">
+    <div class="dom-panel">
+      <div class="dp-title">HTML Source</div>
+      <div class="dom-code">
+        <span class="dc-line" data-domtype="element">&lt;<span style="color:#89b4fa">table</span>&gt;</span>
+        <span class="dc-line" data-domtype="element">&nbsp;&nbsp;&lt;<span style="color:#89b4fa">tbody</span>&gt;</span>
+        <span class="dc-line" data-domtype="element">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span style="color:#89b4fa">tr</span>&gt;</span>
+        <span class="dc-line" data-domtype="attr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span style="color:#89b4fa">td</span> <span style="color:#f9e2af">class</span>=<span style="color:#a6e3a1">"price"</span>&gt;</span>
+        <span class="dc-line" data-domtype="text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$29.99</span>
+        <span class="dc-line" data-domtype="attr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span style="color:#89b4fa">td</span>&gt;</span>
+        <span class="dc-line" data-domtype="attr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span style="color:#89b4fa">td</span> <span style="color:#f9e2af">class</span>=<span style="color:#a6e3a1">"name"</span>&gt;</span>
+        <span class="dc-line" data-domtype="text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Laptop Stand</span>
+        <span class="dc-line" data-domtype="attr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span style="color:#89b4fa">td</span>&gt;</span>
+        <span class="dc-line" data-domtype="element">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span style="color:#89b4fa">tr</span>&gt;</span>
+        <span class="dc-line" data-domtype="element">&nbsp;&nbsp;&lt;/<span style="color:#89b4fa">tbody</span>&gt;</span>
+        <span class="dc-line" data-domtype="element">&lt;/<span style="color:#89b4fa">table</span>&gt;</span>
+      </div>
+    </div>
+
+    <div class="dom-panel">
+      <div class="dp-title">DOM Tree</div>
+      <div class="dom-tree">
+        <div class="tree-node">
+          <span class="tn-box" data-domtype="element"><span class="tn-type tn-elem">ELEM</span> &lt;table&gt;</span>
+          <div class="tree-indent">
+            <div class="tree-node">
+              <span class="tn-box" data-domtype="element"><span class="tn-type tn-elem">ELEM</span> &lt;tbody&gt;</span>
+              <div class="tree-indent">
+                <div class="tree-node">
+                  <span class="tn-box" data-domtype="element"><span class="tn-type tn-elem">ELEM</span> &lt;tr&gt;</span>
+                  <div class="tree-indent">
+                    <div class="tree-node">
+                      <span class="tn-box" data-domtype="attr"><span class="tn-type tn-attr">ATTR</span> &lt;td class="price"&gt;</span>
+                      <div class="tree-indent">
+                        <div class="tree-node"><span class="tn-box" data-domtype="text"><span class="tn-type tn-text">TEXT</span> "$29.99"</span></div>
+                      </div>
+                    </div>
+                    <div class="tree-node" style="margin-top:.3rem">
+                      <span class="tn-box" data-domtype="attr"><span class="tn-type tn-attr">ATTR</span> &lt;td class="name"&gt;</span>
+                      <div class="tree-indent">
+                        <div class="tree-node"><span class="tn-box" data-domtype="text"><span class="tn-type tn-text">TEXT</span> "Laptop Stand"</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top:1rem">
+    <strong>How scrapers navigate the DOM:</strong>
+    <p>A scraper traverses this tree using CSS selectors (<span class="sel-badge">td.price</span>) or XPath (<span class="sel-badge">//td[@class='price']</span>) to locate specific nodes and extract their text content or attribute values.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 3 — HOW WEB PAGES WORK
+══════════════════════════════════════ -->
+<h2 class="section-title" id="web-pages"><span class="icon">🏗</span> How Web Pages Work</h2>
+
+<div class="term-grid">
+
+  <div class="term-card">
+    <div class="term-tag">Web Technology</div>
+    <div class="term-name">HTML (Structure)</div>
+    <p>HyperText Markup Language defines the semantic structure of a page using nested elements. Every HTML page is a tree of tags that a browser parses into a DOM.</p>
+    <ul>
+      <li>Tags: <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;span&gt;</code>, <code>&lt;a href&gt;</code></li>
+      <li>Attributes encode metadata: <code>class</code>, <code>id</code>, <code>data-*</code></li>
+      <li>Scrapers primarily target HTML — it carries the visible text content</li>
+    </ul>
+  </div>
+
+  <div class="term-card blue">
+    <div class="term-tag">Web Technology</div>
+    <div class="term-name">CSS (Presentation)</div>
+    <p>Cascading Style Sheets control visual styling. For scrapers, CSS is primarily useful as a <strong>selector syntax</strong> to target specific elements.</p>
+    <ul>
+      <li><code>.class-name</code> — selects by class attribute</li>
+      <li><code>#id</code> — selects by unique ID</li>
+      <li><code>div &gt; p</code> — direct child combinator</li>
+      <li><code>a[href]</code> — attribute presence selector</li>
+    </ul>
+  </div>
+
+  <div class="term-card yellow">
+    <div class="term-tag">Web Technology</div>
+    <div class="term-name">JavaScript (Behavior)</div>
+    <p>JavaScript executes in the browser to add interactivity and dynamically modify the DOM after page load. This creates a core challenge for scraping.</p>
+    <ul>
+      <li>AJAX loads data asynchronously without page reload</li>
+      <li>SPAs (React, Vue, Angular) render content entirely via JS — the initial HTML may be empty</li>
+      <li><code>requests</code> + BeautifulSoup only sees the initial HTML, <em>not</em> JS-rendered content</li>
+      <li>Selenium/Playwright execute JavaScript like a real browser</li>
+    </ul>
+  </div>
+
+  <div class="term-card green">
+    <div class="term-tag">Core Concept</div>
+    <div class="term-name">DOM — Document Object Model</div>
+    <p>An in-memory, tree-structured representation of an HTML document. The browser constructs the DOM from parsed HTML; JavaScript and scrapers both interact with it.</p>
+    <ul>
+      <li><strong>Element nodes:</strong> represent HTML tags (<code>&lt;table&gt;</code>, <code>&lt;td&gt;</code>)</li>
+      <li><strong>Text nodes:</strong> the visible text inside an element</li>
+      <li><strong>Attribute nodes:</strong> key-value pairs on elements (<code>class="price"</code>)</li>
+      <li>BeautifulSoup replicates a subset of the DOM in Python</li>
+    </ul>
+  </div>
+
+  <div class="term-card teal">
+    <div class="term-tag">HTTP Protocol</div>
+    <div class="term-name">HTTP Request &amp; Response</div>
+    <p>The stateless protocol underlying all web communication. A scraper must correctly simulate browser requests to avoid being blocked.</p>
+    <ul>
+      <li><strong>GET:</strong> retrieve a resource; most scraping uses GET</li>
+      <li><strong>200:</strong> success &nbsp; <strong>301/302:</strong> redirect &nbsp; <strong>403:</strong> forbidden &nbsp; <strong>404:</strong> not found &nbsp; <strong>429:</strong> rate limited</li>
+      <li><strong>User-Agent header:</strong> identifies the client — servers may block non-browser UAs</li>
+      <li><strong>Cookies / Sessions:</strong> required for authenticated scraping</li>
+    </ul>
+  </div>
+
+  <div class="term-card purple">
+    <div class="term-tag">Selector Syntax</div>
+    <div class="term-name">CSS Selectors vs XPath</div>
+    <p>Two primary languages for locating nodes within the DOM, both supported by BeautifulSoup and Scrapy.</p>
+    <ul>
+      <li><strong>CSS:</strong> concise, readable — <span class="sel-badge">span.price</span>, <span class="sel-badge">div &gt; ul &gt; li</span></li>
+      <li><strong>XPath:</strong> powerful, can traverse upwards — <span class="sel-badge">//td[@class='price']/text()</span></li>
+      <li>XPath can select text nodes directly; CSS cannot</li>
+      <li>Scrapy uses CSS for most cases; XPath for complex traversals</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 4 — STATIC VS DYNAMIC
+══════════════════════════════════════ -->
+<h2 class="section-title" id="static-dynamic"><span class="icon">⚡</span> Static vs Dynamic Websites</h2>
+
+<div class="compare-wrapper">
+  <table class="compare">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>Static Website</th>
+        <th>Dynamic / JS-Rendered Website</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>How content is delivered</strong></td>
+        <td class="win">Pre-built HTML from server; content in the initial response</td>
+        <td class="lose">Skeleton HTML + JavaScript fetches data via AJAX after load</td>
+      </tr>
+      <tr>
+        <td><strong>Examples</strong></td>
+        <td>Wikipedia, news articles, documentation sites</td>
+        <td>Twitter/X, Gmail, modern e-commerce SPAs, dashboards</td>
+      </tr>
+      <tr>
+        <td><strong>Scraping tool</strong></td>
+        <td class="win">requests + BeautifulSoup or Scrapy (fast, low overhead)</td>
+        <td class="lose">Selenium, Playwright (browser must execute JS)</td>
+      </tr>
+      <tr>
+        <td><strong>requests.get() result</strong></td>
+        <td class="win">Full page content visible in HTML</td>
+        <td class="lose">Empty divs or placeholder HTML only</td>
+      </tr>
+      <tr>
+        <td><strong>Performance</strong></td>
+        <td class="win">Very fast — no browser overhead</td>
+        <td class="lose">Slower — full browser launch per page</td>
+      </tr>
+      <tr>
+        <td><strong>Detection evasion difficulty</strong></td>
+        <td>Low — header mimicry often sufficient</td>
+        <td>Higher — bot detection watches browser fingerprints</td>
+      </tr>
+      <tr>
+        <td><strong>Alternative approach</strong></td>
+        <td class="dim">N/A</td>
+        <td>Inspect browser Network tab → find underlying JSON API calls directly</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout tip">
+  <strong>Pro tip — check the XHR/Fetch tab first:</strong>
+  <p>Before reaching for Playwright on a "dynamic" site, open Chrome DevTools → Network → XHR/Fetch. Many SPAs call a clean JSON REST or GraphQL API under the hood. Scraping that API directly is orders of magnitude faster than headless browsing.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 5 — PYTHON TOOLS
+══════════════════════════════════════ -->
+<h2 class="section-title" id="python-tools"><span class="icon">🐍</span> Python Scraping Tools</h2>
+
+<!-- BeautifulSoup -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--green);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">Library</span>
+    <h3 style="font-size:1.2rem;color:var(--text)">BeautifulSoup (bs4)</h3>
+  </div>
+  <p style="font-size:.9rem;color:#444;margin-bottom:.8rem">An HTML/XML parsing library that creates a parse tree from raw markup. It does <em>not</em> make HTTP requests — it only parses the HTML you give it. Always paired with <code>requests</code> for static sites.</p>
+
+  <div class="tool-grid">
+    <div class="tool-item green">
+      <strong>find() / find_all()</strong>
+      <span>Search by tag name, attributes, or CSS class. Returns a Tag object or list of Tags.</span>
+    </div>
+    <div class="tool-item green">
+      <strong>select() / select_one()</strong>
+      <span>CSS selector interface. <code>soup.select('div.article > h2')</code> returns a list of matching elements.</span>
+    </div>
+    <div class="tool-item green">
+      <strong>.get_text()</strong>
+      <span>Extracts visible text content from a tag and all its descendants, stripped of HTML markup.</span>
+    </div>
+    <div class="tool-item green">
+      <strong>.attrs / ['href']</strong>
+      <span>Access element attributes as a dictionary. <code>tag['href']</code> extracts hyperlink URLs.</span>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top:1rem">
+    <span class="cb-label">Python — BeautifulSoup</span><br>
+    <span class="kw">import</span> requests<br>
+    <span class="kw">from</span> bs4 <span class="kw">import</span> <span class="cls">BeautifulSoup</span><br><br>
+    <span class="cm"># Fetch the page (simulating a browser UA)</span><br>
+    response = requests.<span class="fn">get</span>(<span class="str">"https://example.com/products"</span>,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;headers={<span class="str">"User-Agent"</span>: <span class="str">"Mozilla/5.0"</span>})<br><br>
+    <span class="cm"># Parse the HTML</span><br>
+    soup = <span class="cls">BeautifulSoup</span>(response.text, <span class="str">'html.parser'</span>)<br><br>
+    <span class="cm"># Extract all headlines with class 'product-title'</span><br>
+    items = soup.<span class="fn">find_all</span>(<span class="str">'span'</span>, class_=<span class="str">'product-title'</span>)<br>
+    data = [item.<span class="fn">get_text</span>(strip=<span class="kw">True</span>) <span class="kw">for</span> item <span class="kw">in</span> items]<br><br>
+    <span class="cm"># CSS selector alternative</span><br>
+    prices = [tag.text <span class="kw">for</span> tag <span class="kw">in</span> soup.<span class="fn">select</span>(<span class="str">'div.price > span'</span>)]
+  </div>
+
+  <div class="callout info" style="margin-top:.5rem">
+    <strong>Use BeautifulSoup when:</strong>
+    <p>You need a quick, one-off scrape of a static page. For recurring or large-scale jobs, prefer Scrapy's built-in concurrency and pipeline system.</p>
+  </div>
+</div>
+
+<!-- Scrapy -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--srh-orange);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">Framework</span>
+    <h3 style="font-size:1.2rem;color:var(--text)">Scrapy</h3>
+  </div>
+  <p style="font-size:.9rem;color:#444;margin-bottom:.8rem">A complete, asynchronous web scraping <em>framework</em> (not just a library). Built on the <strong>Twisted</strong> event loop, it handles concurrency, retries, rate limiting, middleware, and output pipelines out of the box.</p>
+
+  <div class="arch-flow">
+    <div class="arch-node" style="background:var(--blue-bg);border-color:#90b8e8">
+      <div class="node-title">Spider</div>
+      <div class="node-items">start_urls<br>parse() callback<br>yield Items</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="node-title">Scrapy Engine</div>
+      <div class="node-items">Scheduler<br>Downloader<br>Middleware</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node" style="background:var(--teal-bg);border-color:#5ab8b8">
+      <div class="node-title">Downloader</div>
+      <div class="node-items">HTTP requests<br>Twisted async<br>Rate limits</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node" style="background:var(--green-bg);border-color:#5ab88a">
+      <div class="node-title">Item Pipeline</div>
+      <div class="node-items">Validate<br>Deduplicate<br>Write CSV/DB</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <span class="cb-label">Python — Scrapy Spider</span><br>
+    <span class="kw">import</span> scrapy<br><br>
+    <span class="kw">class</span> <span class="cls">BlogSpider</span>(scrapy.<span class="cls">Spider</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;name = <span class="str">'blogspider'</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;start_urls = [<span class="str">'https://example-blog.com/'</span>]<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">parse</span>(<span class="kw">self</span>, response):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Extract data from current page</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> title <span class="kw">in</span> response.<span class="fn">css</span>(<span class="str">'.post-title'</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">yield</span> {<span class="str">'title'</span>: title.<span class="fn">css</span>(<span class="str">'::text'</span>).<span class="fn">get</span>()}<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Follow pagination links</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> next_page <span class="kw">in</span> response.<span class="fn">css</span>(<span class="str">'a.next'</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">yield</span> response.<span class="fn">follow</span>(next_page, <span class="kw">self</span>.parse)
+  </div>
+
+  <div class="tool-grid">
+    <div class="tool-item orange">
+      <strong>Asynchronous by default</strong>
+      <span>Twisted event loop enables concurrent downloads without threads. Easily configurable request rate (DOWNLOAD_DELAY setting).</span>
+    </div>
+    <div class="tool-item orange">
+      <strong>CrawlSpider + Rules</strong>
+      <span>Built-in crawler that follows links matching regex rules. No manual link-following code needed.</span>
+    </div>
+    <div class="tool-item orange">
+      <strong>Middlewares</strong>
+      <span>Hook points for proxy rotation, cookie management, User-Agent randomization, retry logic.</span>
+    </div>
+    <div class="tool-item orange">
+      <strong>Item Pipelines</strong>
+      <span>Post-processing chain: validate data, write to CSV/JSON/database, deduplicate by URL hash.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Scrawler -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--purple);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">Custom Tool</span>
+    <h3 style="font-size:1.2rem;color:var(--text)">Scrawler (Custom Scraper + Crawler)</h3>
+  </div>
+  <p style="font-size:.9rem;color:#444;margin-bottom:.8rem">A self-coded scraper-crawler built with Python <code>asyncio</code> and multithreading. Designed for domain-bounded crawling with controlled depth, useful when Scrapy's overhead is undesirable or fine-grained control is needed.</p>
+
+  <div class="term-grid" style="margin-top:.5rem">
+    <div class="term-card purple">
+      <div class="term-tag">Architecture</div>
+      <div class="term-name">asyncio + Multithreading</div>
+      <p>Uses Python's <code>asyncio</code> event loop for I/O-bound HTTP requests combined with a thread pool for CPU-bound parsing. Achieves parallelism without spawning processes.</p>
+    </div>
+    <div class="term-card purple">
+      <div class="term-tag">Constraints</div>
+      <div class="term-name">50 Pages / Domain</div>
+      <p>Caps crawl depth per domain to avoid overwhelming servers and to stay within legal/ethical bounds. Configurable via a <code>max_pages</code> parameter.</p>
+    </div>
+    <div class="term-card purple">
+      <div class="term-tag">Depth Control</div>
+      <div class="term-name">3 Inner Levels</div>
+      <p>Only follows links up to 3 hops from the seed URL. Prevents crawl explosion while capturing most relevant content in a typical site hierarchy: homepage → category → article.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 6 — BROWSER AUTOMATION
+══════════════════════════════════════ -->
+<h2 class="section-title" id="browser-automation"><span class="icon">🤖</span> Browser Automation</h2>
+
+<div class="callout info">
+  <strong>Why browser automation for scraping?</strong>
+  <p>JavaScript-rendered sites cannot be scraped with HTTP libraries alone. Browser automation tools launch a real (or headless) browser that executes JavaScript, waits for DOM updates, and allows interaction — exactly as a human would.</p>
+</div>
+
+<!-- Selenium -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--blue);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">Library</span>
+    <h3 style="font-size:1.2rem;color:var(--text)">Selenium WebDriver</h3>
+  </div>
+  <p style="font-size:.9rem;color:#444;margin-bottom:.8rem">Originally designed for automated browser testing, Selenium drives a real browser through a <strong>WebDriver</strong> protocol. It supports Chrome (ChromeDriver), Firefox (GeckoDriver), and others. For scraping, it's the go-to for small-scale JavaScript-heavy sites.</p>
+
+  <div class="code-block">
+    <span class="cb-label">Python — Selenium</span><br>
+    <span class="kw">from</span> selenium <span class="kw">import</span> webdriver<br>
+    <span class="kw">from</span> selenium.webdriver.common.by <span class="kw">import</span> By<br><br>
+    driver = webdriver.<span class="fn">Chrome</span>()  <span class="cm"># launches Chrome</span><br>
+    driver.<span class="fn">get</span>(<span class="str">"https://example.com"</span>)<br><br>
+    <span class="cm"># Accept cookie banner by XPath</span><br>
+    driver.<span class="fn">find_element</span>(By.XPATH, <span class="str">'//button[@id="accept-btn"]'</span>).<span class="fn">click</span>()<br><br>
+    <span class="cm"># Extract all elements with a CSS class</span><br>
+    elements = driver.<span class="fn">find_elements</span>(By.CLASS_NAME, <span class="str">'product-title'</span>)<br>
+    data = [el.text <span class="kw">for</span> el <span class="kw">in</span> elements]<br><br>
+    driver.<span class="fn">quit</span>()  <span class="cm"># always close the browser</span>
+  </div>
+
+  <div class="tool-grid" style="margin-top:.8rem">
+    <div class="tool-item">
+      <strong>WebDriver Protocol</strong>
+      <span>JSON Wire Protocol over HTTP between Python and the browser. Each command is an HTTP POST to ChromeDriver or GeckoDriver.</span>
+    </div>
+    <div class="tool-item">
+      <strong>Headless Mode</strong>
+      <span>Run Chrome/Firefox without a visible window: <code>options.add_argument('--headless')</code>. Faster and suitable for server environments.</span>
+    </div>
+    <div class="tool-item">
+      <strong>Explicit Waits</strong>
+      <span><code>WebDriverWait</code> + <code>expected_conditions</code> pauses execution until a specific DOM state is reached, avoiding flaky timing hacks.</span>
+    </div>
+    <div class="tool-item">
+      <strong>Limitations</strong>
+      <span>No built-in concurrency; slower than Playwright; requires matching browser + driver versions; heavier resource footprint.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Playwright -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--teal);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">Library</span>
+    <h3 style="font-size:1.2rem;color:var(--text)">Microsoft Playwright</h3>
+  </div>
+  <p style="font-size:.9rem;color:#444;margin-bottom:.8rem">Playwright uses a <strong>WebSocket</strong> connection to the browser's DevTools Protocol, making it significantly faster than Selenium's HTTP-based WebDriver. It supports Chromium, Firefox, and WebKit (Safari engine) with a single unified API.</p>
+
+  <div class="code-block">
+    <span class="cb-label">Python — Playwright (sync)</span><br>
+    <span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright<br><br>
+    <span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser = p.chromium.<span class="fn">launch</span>(headless=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page = browser.<span class="fn">new_page</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">goto</span>(<span class="str">"https://example.com"</span>)<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Auto-wait until element is visible</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">wait_for_selector</span>(<span class="str">'.product-list'</span>)<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Extract data</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;titles = page.<span class="fn">query_selector_all</span>(<span class="str">'.product-title'</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;data = [t.<span class="fn">inner_text</span>() <span class="kw">for</span> t <span class="kw">in</span> titles]<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Intercept network requests</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">on</span>(<span class="str">"response"</span>, <span class="kw">lambda</span> r: <span class="fn">print</span>(r.url))<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser.<span class="fn">close</span>()
+  </div>
+
+  <div class="tool-grid" style="margin-top:.8rem">
+    <div class="tool-item teal">
+      <strong>Auto-wait</strong>
+      <span>Playwright automatically waits for elements to be actionable before clicking or extracting. No manual sleep() or WebDriverWait boilerplate.</span>
+    </div>
+    <div class="tool-item teal">
+      <strong>Network Interception</strong>
+      <span>Intercept/mock network requests with <code>page.route()</code>. Useful for blocking ads, capturing API responses, or injecting test data.</span>
+    </div>
+    <div class="tool-item teal">
+      <strong>Async Support</strong>
+      <span>Full <code>async/await</code> API for concurrent page scraping within a single process — much faster than sequential Selenium.</span>
+    </div>
+    <div class="tool-item teal">
+      <strong>Multi-browser</strong>
+      <span>Test/scrape across Chromium, Firefox, WebKit from one API. Browsers bundled — no driver version matching required.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Crawlee -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--red);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">Framework</span>
+    <h3 style="font-size:1.2rem;color:var(--text)">Crawlee</h3>
+  </div>
+  <p style="font-size:.9rem;color:#444;margin-bottom:.8rem">A production-grade scraping framework from the Apify team, originally built for Node.js and now available for Python. It wraps Playwright with features specifically designed to avoid bot detection and handle enterprise-scale crawling.</p>
+
+  <div class="tool-grid">
+    <div class="tool-item red">
+      <strong>Proxy Rotation</strong>
+      <span>Built-in proxy pool management. Automatically rotates IPs to avoid rate limiting and IP bans.</span>
+    </div>
+    <div class="tool-item red">
+      <strong>Anti-bot Fingerprinting</strong>
+      <span>Randomizes browser fingerprints (screen size, timezone, language, WebGL) to evade bot detection systems like DataDome or Cloudflare.</span>
+    </div>
+    <div class="tool-item red">
+      <strong>Persistent Request Queue</strong>
+      <span>Scraping state survives crashes. Resume crawls from where they left off without re-visiting already-scraped URLs.</span>
+    </div>
+    <div class="tool-item red">
+      <strong>Playwright Integration</strong>
+      <span>Uses Playwright as its browser backend, inheriting auto-wait, network interception, and multi-browser support.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 7 — TOOL COMPARISON
+══════════════════════════════════════ -->
+<h2 class="section-title" id="tool-comparison"><span class="icon">⚖️</span> Tool Comparison</h2>
+
+<div class="compare-wrapper">
+  <table class="compare">
+    <thead>
+      <tr>
+        <th>Tool</th>
+        <th>Type</th>
+        <th>Primary Purpose</th>
+        <th>Best For</th>
+        <th>Selector Support</th>
+        <th>Built-in Crawling</th>
+        <th>JS Rendering</th>
+        <th>Difficulty</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>BeautifulSoup</strong></td>
+        <td>Library</td>
+        <td>HTML/XML parser</td>
+        <td class="win">Simple, non-recurring static scrapes</td>
+        <td>CSS + find_all()</td>
+        <td class="lose">No</td>
+        <td class="lose">No</td>
+        <td class="win">Very Easy</td>
+      </tr>
+      <tr>
+        <td><strong>Scrapy</strong></td>
+        <td>Framework</td>
+        <td>Full scraping solution</td>
+        <td class="win">Large-scale crawl + scrape</td>
+        <td class="win">CSS + XPath</td>
+        <td class="win">Yes</td>
+        <td class="dim">Via Splash plugin</td>
+        <td>Easy–Medium</td>
+      </tr>
+      <tr>
+        <td><strong>Selenium</strong></td>
+        <td>Library</td>
+        <td>Browser automation (testing)</td>
+        <td>Small-scale JS sites; existing test suites</td>
+        <td class="win">CSS + XPath</td>
+        <td class="lose">No</td>
+        <td class="win">Yes</td>
+        <td>Easy</td>
+      </tr>
+      <tr>
+        <td><strong>Playwright</strong></td>
+        <td>Library</td>
+        <td>Modern browser automation</td>
+        <td class="win">Modern JS-heavy sites; async scraping</td>
+        <td class="win">CSS + XPath</td>
+        <td class="lose">No</td>
+        <td class="win">Yes (auto-wait)</td>
+        <td>Easy–Medium</td>
+      </tr>
+      <tr>
+        <td><strong>Crawlee</strong></td>
+        <td>Framework</td>
+        <td>Production scraping</td>
+        <td class="win">Anti-bot, proxy rotation, production scale</td>
+        <td class="win">CSS + XPath</td>
+        <td class="win">Yes</td>
+        <td class="win">Yes (Playwright)</td>
+        <td>Medium</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3 style="font-size:1rem;color:var(--text);margin:1.5rem 0 .8rem;font-weight:700">Tool Selection Guide</h3>
+<div class="tool-grid">
+  <div class="tool-item green">
+    <strong>Large-scale Python crawl</strong>
+    <span>→ Scrapy — battle-tested framework with async engine, pipelines, and extensive middleware ecosystem.</span>
+  </div>
+  <div class="tool-item teal">
+    <strong>Modern JS-heavy sites</strong>
+    <span>→ Playwright — faster than Selenium, auto-wait, async support, multi-browser in one library.</span>
+  </div>
+  <div class="tool-item red">
+    <strong>Production + proxies + anti-bot</strong>
+    <span>→ Crawlee — built for production resilience; persistent queues, fingerprint evasion, proxy rotation.</span>
+  </div>
+  <div class="tool-item">
+    <strong>Quick static scrape</strong>
+    <span>→ requests + BeautifulSoup — zero overhead, beginner-friendly, sufficient for one-time jobs.</span>
+  </div>
+  <div class="tool-item purple">
+    <strong>Enterprise / managed service</strong>
+    <span>→ Apify, Zyte (formerly Scrapy Cloud), ScrapingBee, BrightData — managed infra with CAPTCHA solving.</span>
+  </div>
+  <div class="tool-item yellow">
+    <strong>Large existing test suite</strong>
+    <span>→ Selenium — if the team already has Selenium test infrastructure, leverage it for scraping too.</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 8 — LEGAL & ETHICAL
+══════════════════════════════════════ -->
+<h2 class="section-title" id="legal-ethical"><span class="icon">⚖️</span> Legal &amp; Ethical Considerations</h2>
+
+<div class="term-grid">
+
+  <div class="term-card yellow">
+    <div class="term-tag">Protocol</div>
+    <div class="term-name">robots.txt</div>
+    <p>The <strong>Robots Exclusion Protocol</strong> — a plain-text file at <code>https://domain.com/robots.txt</code> that specifies which parts of the site crawlers should not access.</p>
+    <ul>
+      <li><code>User-agent: *</code> — applies to all crawlers</li>
+      <li><code>Disallow: /admin/</code> — block access to path</li>
+      <li><code>Allow: /public/</code> — explicitly permit a sub-path of a blocked parent</li>
+      <li>Not technically enforced — a server cannot prevent access — but violations are unethical and may expose legal liability</li>
+    </ul>
+  </div>
+
+  <div class="term-card red">
+    <div class="term-tag">Legal</div>
+    <div class="term-name">Terms of Service (ToS)</div>
+    <p>Website ToS documents often explicitly prohibit automated access or scraping. Violating ToS can result in account bans, IP blocking, or legal action.</p>
+    <ul>
+      <li><strong>HiQ Labs v. LinkedIn (2019):</strong> US 9th Circuit ruled that scraping publicly accessible data does not violate the CFAA (Computer Fraud and Abuse Act)</li>
+      <li>Copyright may still apply to scraped content</li>
+      <li>GDPR implications if scraping personal data of EU citizens</li>
+    </ul>
+  </div>
+
+  <div class="term-card">
+    <div class="term-tag">Best Practice</div>
+    <div class="term-name">Rate Limiting</div>
+    <p>Sending too many requests too quickly constitutes a denial-of-service attack from the server's perspective. Ethical scraping includes deliberate throttling.</p>
+    <ul>
+      <li><code>time.sleep(2)</code> between requests as a minimum courtesy</li>
+      <li>Scrapy's <code>DOWNLOAD_DELAY</code> setting and <code>AUTOTHROTTLE</code> extension</li>
+      <li>Schedule scraping during off-peak hours (nighttime for the target's timezone)</li>
+      <li>Respect <code>Retry-After</code> header on 429 responses</li>
+    </ul>
+  </div>
+
+  <div class="term-card green">
+    <div class="term-tag">Best Practice</div>
+    <div class="term-name">Identify Yourself</div>
+    <p>Setting a descriptive User-Agent that includes contact information is considered good practice — it allows site owners to reach you if issues arise.</p>
+    <ul>
+      <li>Example: <code>MyResearchBot/1.0 (contact: researcher@university.edu)</code></li>
+      <li>Contrast with mimicking a browser UA to evade detection — ethically different</li>
+    </ul>
+  </div>
+
+</div>
+
+<h3 style="font-size:1rem;color:var(--text);margin:1.5rem 0 .8rem;font-weight:700">robots.txt — Annotated Example</h3>
+<div class="robots-example">
+<span class="r-comment"># Applies to all crawlers</span>
+<span class="r-key">User-agent</span>: <span class="r-val">*</span>
+
+<span class="r-comment"># Block crawler access to these sensitive paths</span>
+<span class="r-key">Disallow</span>: <span class="r-disallow">/basket</span>
+<span class="r-key">Disallow</span>: <span class="r-disallow">/checkout</span>
+<span class="r-key">Disallow</span>: <span class="r-disallow">/settings</span>
+<span class="r-key">Disallow</span>: <span class="r-disallow">/newsletter</span>
+
+<span class="r-comment"># Allow crawlers to access these sub-paths of blocked parents</span>
+<span class="r-key">Allow</span>: <span class="r-allow">/newsletter-archive</span>
+<span class="r-key">Allow</span>: <span class="r-allow">/settings-public</span>
+
+<span class="r-comment"># Sitemap location</span>
+<span class="r-key">Sitemap</span>: <span class="r-val">https://example.com/sitemap.xml</span>
+</div>
+
+<div class="callout warn">
+  <strong>Ethical checklist before scraping:</strong>
+  <p>1. Check <code>robots.txt</code> — does it disallow your target path? &nbsp; 2. Review the Terms of Service for explicit scraping prohibitions. &nbsp; 3. Will the data contain personal information (GDPR scope)? &nbsp; 4. Is there a public API that makes scraping unnecessary? &nbsp; 5. Set a respectful rate limit — not more than 1 request / 2 seconds for a typical site.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 9 — KEY CONCEPTS
+══════════════════════════════════════ -->
+<h2 class="section-title" id="key-concepts"><span class="icon">💡</span> Key Concepts</h2>
+
+<div class="term-grid">
+
+  <div class="term-card blue">
+    <div class="term-tag">Architecture</div>
+    <div class="term-name">Headless vs Headed Browser</div>
+    <p>A <strong>headed</strong> browser renders a visible window; a <strong>headless</strong> browser runs entirely in memory without a display. Headless is standard for server-side scraping.</p>
+    <ul>
+      <li>Playwright: <code>launch(headless=True)</code> (default)</li>
+      <li>Headed mode is useful for debugging — you see exactly what the scraper sees</li>
+      <li>Some anti-bot systems detect headless mode via browser APIs — Crawlee randomizes these</li>
+    </ul>
+  </div>
+
+  <div class="term-card teal">
+    <div class="term-tag">Technique</div>
+    <div class="term-name">Session &amp; Cookie Management</div>
+    <p>Many sites require authentication or session cookies to serve content. Scrapers must handle login flows and persist cookies across requests.</p>
+    <ul>
+      <li><code>requests.Session()</code> automatically handles cookies and connection pooling</li>
+      <li>Selenium/Playwright: browser stores cookies naturally; use <code>storage_state</code> in Playwright to save/restore auth</li>
+    </ul>
+  </div>
+
+  <div class="term-card green">
+    <div class="term-tag">Technique</div>
+    <div class="term-name">Pagination Handling</div>
+    <p>Multi-page data sources require following pagination links or constructing URL patterns.</p>
+    <ul>
+      <li><strong>URL pattern:</strong> <code>?page=1</code>, <code>?page=2</code> → iterate with a loop</li>
+      <li><strong>Next-page link:</strong> <code>soup.find('a', class_='next')</code> → follow and recurse</li>
+      <li><strong>Infinite scroll:</strong> AJAX loads more items — use Playwright to scroll and wait for new content</li>
+    </ul>
+  </div>
+
+  <div class="term-card purple">
+    <div class="term-tag">Infrastructure</div>
+    <div class="term-name">Proxy Rotation</div>
+    <p>Using a pool of IP addresses to distribute requests and avoid IP-level rate limits or bans. Each request appears to originate from a different IP.</p>
+    <ul>
+      <li>Residential proxies: harder to detect, more expensive</li>
+      <li>Datacenter proxies: cheap, often blocked by major sites</li>
+      <li>Crawlee, Scrapy middleware, BrightData all support proxy rotation</li>
+    </ul>
+  </div>
+
+  <div class="term-card">
+    <div class="term-tag">Architecture</div>
+    <div class="term-name">Seed URL &amp; Frontier</div>
+    <p>The <strong>seed URL(s)</strong> are the starting points for a crawler. The <strong>frontier</strong> (or request queue) holds URLs yet to be visited.</p>
+    <ul>
+      <li>Scrapy: <code>start_urls</code> list → scheduler queues them</li>
+      <li>Crawlee: persistent <code>RequestQueue</code> — survives process restarts</li>
+      <li>URL normalization prevents duplicate visits to the same resource via different paths</li>
+    </ul>
+  </div>
+
+  <div class="term-card yellow">
+    <div class="term-tag">Architecture</div>
+    <div class="term-name">Politeness &amp; Crawl Budget</div>
+    <p>Being a "polite" crawler means respecting the server's capacity. <strong>Crawl budget</strong> is the number of pages a crawler will visit on a given domain within a time window.</p>
+    <ul>
+      <li>Scrapy: <code>DOWNLOAD_DELAY</code> + <code>AUTOTHROTTLE_ENABLED</code></li>
+      <li>Stagger requests using jitter: <code>random.uniform(1, 3)</code> seconds</li>
+      <li>Crawling at night reduces server load impact</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 10 — GLOSSARY
+══════════════════════════════════════ -->
+<h2 class="section-title" id="glossary"><span class="icon">📖</span> Quick Glossary</h2>
+
+<div class="term-grid">
+
+  <div class="term-card">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">AJAX</div>
+    <p><em>Asynchronous JavaScript and XML.</em> A technique for updating parts of a web page by making background HTTP requests without a full page reload. The main reason requests-only scrapers miss content on modern sites.</p>
+  </div>
+
+  <div class="term-card green">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">SPA — Single Page Application</div>
+    <p>A web application that loads a single HTML page and dynamically rewrites content using JavaScript (React, Vue, Angular). The initial HTML often contains little more than a <code>&lt;div id="root"&gt;&lt;/div&gt;</code>.</p>
+  </div>
+
+  <div class="term-card blue">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">WebDriver</div>
+    <p>The W3C-standardized protocol for programmatically controlling a browser. Selenium communicates to ChromeDriver or GeckoDriver over HTTP using this protocol.</p>
+  </div>
+
+  <div class="term-card purple">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">DevTools Protocol (CDP)</div>
+    <p>Chrome's native protocol for debugger tools, used by Playwright (and internally by Puppeteer) via a persistent WebSocket. Faster than the WebDriver JSON Wire Protocol.</p>
+  </div>
+
+  <div class="term-card teal">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">Twisted</div>
+    <p>An event-driven networking engine for Python. Scrapy's underlying concurrency model — it handles many HTTP connections simultaneously via an event loop without blocking threads.</p>
+  </div>
+
+  <div class="term-card yellow">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">XPath</div>
+    <p><em>XML Path Language.</em> A query language for selecting nodes from an XML/HTML document. More expressive than CSS selectors — can traverse parent nodes and select text directly. Example: <span class="sel-badge">//div[@class='item']/h2/text()</span></p>
+  </div>
+
+  <div class="term-card">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">User-Agent</div>
+    <p>An HTTP request header identifying the client application. Browser UAs look like: <code>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ...</code>. Setting this in scraper headers reduces the likelihood of being identified as a bot.</p>
+  </div>
+
+  <div class="term-card green">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">Rate Limiting (HTTP 429)</div>
+    <p>Server-side protection that returns HTTP status <code>429 Too Many Requests</code> when a client exceeds an allowed request rate. Usually accompanied by a <code>Retry-After</code> header indicating how long to wait.</p>
+  </div>
+
+  <div class="term-card blue">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">Item Pipeline (Scrapy)</div>
+    <p>A sequence of processing steps applied to every item yielded by a Scrapy spider. Each pipeline component can filter, validate, transform, or persist the item — e.g., write to PostgreSQL or deduplicate by URL hash.</p>
+  </div>
+
+  <div class="term-card red">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">Bot Detection</div>
+    <p>Server-side systems that identify and block automated clients. Common signals: too-fast request cadence, missing browser headers, predictable user behavior, shared datacenter IP ranges, headless browser API leakage (e.g., <code>navigator.webdriver === true</code>).</p>
+  </div>
+
+  <div class="term-card purple">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">Splash</div>
+    <p>A lightweight JavaScript rendering service designed for use with Scrapy. Acts as a headless browser accessible over HTTP — Scrapy sends a URL, Splash returns rendered HTML. Less capable than Playwright but integrates natively with Scrapy.</p>
+  </div>
+
+  <div class="term-card teal">
+    <div class="term-tag">Glossary</div>
+    <div class="term-name">CFAA</div>
+    <p><em>Computer Fraud and Abuse Act</em> — US federal law governing unauthorized computer access. The 2019 HiQ v. LinkedIn ruling established that scraping publicly available data does not violate the CFAA, though the legal landscape continues to evolve.</p>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 11 — PREREQUISITES
+══════════════════════════════════════ -->
+<h2 class="section-title" id="prerequisites"><span class="icon">⚙</span> Prerequisites</h2>
+
+<!-- QUICK SETUP BOX -->
+<div style="background:var(--green-bg);border:2px solid var(--green);border-radius:12px;padding:1.6rem 1.8rem;margin-bottom:1.5rem;">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:var(--green);color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">ONE-SHOT SETUP</span>
+    <span style="font-size:1.1rem;font-weight:700;color:var(--text)">3 commands — that's all</span>
+  </div>
+  <p style="font-size:.88rem;color:#333;margin-bottom:1rem">Copy the setup script to your VM, run it, then activate the environment. Everything else is handled automatically.</p>
+
+  <div class="verify-block" style="margin:0">
+    <span class="vb-label">Terminal — Ubuntu 22.04 VM</span><br>
+    <span class="vb-comment"># Step 1 — clone the repository (URL provided by your lecturer)</span><br>
+    <span class="vb-cmd">git clone &lt;REPO_URL&gt; &amp;&amp; cd web-scraping</span><br><br>
+    <span class="vb-comment"># Step 2 — run the setup script (installs everything, writes all lab files)</span><br>
+    <span class="vb-cmd">bash web_scraping_setup.sh</span><br><br>
+    <span class="vb-comment"># Step 3 — activate the environment (repeat this once each time you open a terminal)</span><br>
+    <span class="vb-cmd">source ~/web-scraping-lab/venv/bin/activate</span><br>
+    <span class="vb-out">(venv) student@ubuntu:~$</span>
+  </div>
+
+  <div style="margin-top:1rem;padding:.9rem 1.1rem;background:#fff;border-radius:8px;border:1px solid #b7dfca">
+    <p style="font-size:.87rem;color:#333;margin:0"><strong>After Step 2 completes you will see:</strong><br>
+    <code style="font-size:.83rem">All checks passed — ready for the lab!</code><br>
+    and a summary box showing the commands to run each phase.</p>
+  </div>
+</div>
+
+<div class="callout info">
+  <strong>Environment: Linux Virtual Machine on Mac or Windows</strong>
+  <p>All students run this lab inside a Linux VM (Ubuntu 22.04 recommended). The setup script handles Python, the virtual environment, all libraries, Playwright Chromium, and writes every lab file for you. Estimated run time: 3–5 minutes.</p>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num prereq">1</div>
+    <div>
+      <div class="phase-title">Verify Your Linux VM is Running</div>
+      <div class="phase-subtitle">Check OS, Python version, and internet connectivity</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Open a terminal inside your VM and run these checks one by one:</p>
+  <div class="verify-block">
+    <span class="vb-label">Terminal — VM Checks</span><br>
+    <span class="vb-comment"># 1. Confirm you are on Linux</span><br>
+    <span class="vb-cmd">uname -a</span><br>
+    <span class="vb-out">Linux ubuntu 5.15.0-91-generic ... x86_64 GNU/Linux</span><br><br>
+    <span class="vb-comment"># 2. Check Python version — must be 3.8 or higher</span><br>
+    <span class="vb-cmd">python3 --version</span><br>
+    <span class="vb-out">Python 3.10.12</span><br><br>
+    <span class="vb-comment"># 3. Check pip is available</span><br>
+    <span class="vb-cmd">pip3 --version</span><br>
+    <span class="vb-out">pip 22.0.2 from /usr/lib/python3/dist-packages/pip (python 3.10)</span><br><br>
+    <span class="vb-comment"># 4. Test internet access from the VM</span><br>
+    <span class="vb-cmd">curl -s -o /dev/null -w "%{http_code}" http://quotes.toscrape.com</span><br>
+    <span class="vb-out">200</span>
+  </div>
+  <div class="callout warn" style="margin-top:.6rem">
+    <strong>No Python 3?</strong>
+    <p>Run <code>sudo apt update &amp;&amp; sudo apt install -y python3 python3-pip python3-venv</code> to install it.</p>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num prereq">2</div>
+    <div>
+      <div class="phase-title">Create a Project Folder &amp; Virtual Environment</div>
+      <div class="phase-subtitle">Keep all lab dependencies isolated — do not install globally</div>
+    </div>
+  </div>
+  <div class="verify-block">
+    <span class="vb-label">Terminal — Project Setup</span><br>
+    <span class="vb-comment"># Create a dedicated folder for this lab</span><br>
+    <span class="vb-cmd">mkdir ~/web-scraping-lab &amp;&amp; cd ~/web-scraping-lab</span><br><br>
+    <span class="vb-comment"># Create a virtual environment named 'venv'</span><br>
+    <span class="vb-cmd">python3 -m venv venv</span><br><br>
+    <span class="vb-comment"># Activate it — your prompt will change to (venv)</span><br>
+    <span class="vb-cmd">source venv/bin/activate</span><br>
+    <span class="vb-out">(venv) student@ubuntu:~/web-scraping-lab$</span><br><br>
+    <span class="vb-comment"># Upgrade pip inside the venv first</span><br>
+    <span class="vb-cmd">pip install --upgrade pip</span>
+  </div>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>Remember:</strong>
+    <p>Every time you open a new terminal, re-activate your venv with <code>source ~/web-scraping-lab/venv/bin/activate</code> before running any lab scripts.</p>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num prereq">3</div>
+    <div>
+      <div class="phase-title">Install Python Libraries</div>
+      <div class="phase-subtitle">requests, BeautifulSoup4, Playwright, pandas, Scrapy</div>
+    </div>
+  </div>
+  <div class="verify-block">
+    <span class="vb-label">Terminal — pip installs (venv must be active)</span><br>
+    <span class="vb-comment"># Install all required libraries in one command</span><br>
+    <span class="vb-cmd">pip install requests beautifulsoup4 playwright pandas scrapy lxml</span><br><br>
+    <span class="vb-comment"># Install Playwright's Chromium browser binary</span><br>
+    <span class="vb-cmd">playwright install chromium</span><br><br>
+    <span class="vb-comment"># On Ubuntu/Debian: install system-level browser dependencies</span><br>
+    <span class="vb-cmd">sudo playwright install-deps chromium</span>
+  </div>
+  <div class="prereq-grid" style="margin-top:1rem">
+    <div class="prereq-card pc-green">
+      <div class="pc-label">Library</div>
+      <div class="pc-title">requests</div>
+      <p>Sends HTTP GET/POST requests and returns the response body. Used for static website scraping alongside BeautifulSoup.</p>
+    </div>
+    <div class="prereq-card pc-green">
+      <div class="pc-label">Library</div>
+      <div class="pc-title">beautifulsoup4 (bs4)</div>
+      <p>Parses raw HTML into a searchable tree. Locate elements by tag name, CSS class, or attribute.</p>
+    </div>
+    <div class="prereq-card pc-teal">
+      <div class="pc-label">Library</div>
+      <div class="pc-title">playwright</div>
+      <p>Automates a real Chromium browser to render JavaScript-heavy dynamic pages. Faster than Selenium with built-in auto-wait.</p>
+    </div>
+    <div class="prereq-card pc-blue">
+      <div class="pc-label">Library</div>
+      <div class="pc-title">pandas</div>
+      <p>Reads and analyses the CSV output you produce. Used to verify row counts and explore scraped data.</p>
+    </div>
+    <div class="prereq-card pc-orange">
+      <div class="pc-label">Framework</div>
+      <div class="pc-title">scrapy</div>
+      <p>Full asynchronous web-crawling framework. Used in the Phase 7 extension challenge to compare with the BeautifulSoup approach.</p>
+    </div>
+    <div class="prereq-card pc-purple">
+      <div class="pc-label">Parser</div>
+      <div class="pc-title">lxml</div>
+      <p>Faster HTML/XML parser used as an alternative backend for BeautifulSoup: <code>BeautifulSoup(html, "lxml")</code>.</p>
+    </div>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num prereq">4</div>
+    <div>
+      <div class="phase-title">Verify All Installations</div>
+      <div class="phase-subtitle">Run this script — every line must print OK before starting the lab</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.6rem">Create <code>~/web-scraping-lab/check_setup.py</code> and paste the code below:</p>
+  <div class="verify-block">
+    <span class="vb-label">check_setup.py</span><br>
+    <span style="color:#cba6f7">import</span> sys<br>
+    <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">f"Python: {sys.version}"</span>)<br><br>
+    <span style="color:#cba6f7">try</span>:<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> requests;         <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"requests        OK"</span>)<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> bs4;             <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"beautifulsoup4  OK"</span>)<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> playwright;      <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"playwright      OK"</span>)<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> pandas;          <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"pandas          OK"</span>)<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> scrapy;          <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"scrapy          OK"</span>)<br>
+    <span style="color:#cba6f7">except</span> <span style="color:#f9e2af">ImportError</span> <span style="color:#cba6f7">as</span> e:<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">f"MISSING: {e}"</span>)<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"Re-run: pip install requests beautifulsoup4 playwright pandas scrapy lxml"</span>)<br><br>
+    <span style="color:#6c7086;font-style:italic"># Test that Playwright can launch Chromium</span><br>
+    <span style="color:#cba6f7">from</span> playwright.sync_api <span style="color:#cba6f7">import</span> sync_playwright<br>
+    <span style="color:#cba6f7">with</span> sync_playwright() <span style="color:#cba6f7">as</span> p:<br>
+    &nbsp;&nbsp;b = p.chromium.launch(headless=<span style="color:#cba6f7">True</span>)<br>
+    &nbsp;&nbsp;b.close()<br>
+    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"Playwright Chromium  OK"</span>)
+  </div>
+  <div class="verify-block" style="margin-top:.5rem">
+    <span class="vb-label">Expected Output — all lines must show OK</span><br>
+    <span class="vb-cmd">python3 check_setup.py</span><br>
+    <span class="vb-out">Python: 3.10.12 ...</span><br>
+    <span class="vb-out">requests        OK</span><br>
+    <span class="vb-out">beautifulsoup4  OK</span><br>
+    <span class="vb-out">playwright      OK</span><br>
+    <span class="vb-out">pandas          OK</span><br>
+    <span class="vb-out">scrapy          OK</span><br>
+    <span class="vb-out">Playwright Chromium  OK</span>
+  </div>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>All green? You are ready to start the lab.</strong>
+    <p>If any line shows <code>MISSING</code>, check that your venv is active (<code>source venv/bin/activate</code>) and re-run the pip install command from Step 3.</p>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num prereq">5</div>
+    <div>
+      <div class="phase-title">Target Websites for This Lab</div>
+      <div class="phase-subtitle">Scraping-safe practice sites — no robots.txt restrictions</div>
+    </div>
+  </div>
+  <div class="compare-wrapper">
+    <table class="compare">
+      <thead>
+        <tr><th>URL</th><th>Type</th><th>What to scrape</th><th>Used in</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>quotes.toscrape.com</code></td>
+          <td class="win">Static HTML</td>
+          <td>Quotes, authors, tags — 10 pages</td>
+          <td>Phase 2 (BeautifulSoup)</td>
+        </tr>
+        <tr>
+          <td><code>quotes.toscrape.com/js/</code></td>
+          <td style="color:var(--srh-orange);font-weight:600">Dynamic (JS)</td>
+          <td>Same data, rendered by JavaScript after load</td>
+          <td>Phases 3, 4, 5, 6 (Playwright)</td>
+        </tr>
+        <tr>
+          <td><code>books.toscrape.com</code></td>
+          <td class="win">Static HTML</td>
+          <td>Book titles, prices, ratings — 50 pages</td>
+          <td>Phase 7 Extension Challenge E</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>Why these sites?</strong>
+    <p>Both <code>toscrape.com</code> domains were built specifically for learning web scraping. They have no robots.txt restrictions, no rate limits, and no legal concerns — safe for classroom use.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 12 — HANDS-ON LAB
+══════════════════════════════════════ -->
+<h2 class="section-title" id="hands-on-lab"><span class="icon">🧪</span> Hands-On Lab — Assignment (Slide 30)</h2>
+
+<div class="callout info">
+  <strong>Assignment (Slide 30):</strong>
+  <p>Choose a dynamic website. Scrape its data and store it as a table in a CSV file. This lab walks through every step — from legal checks to the final CSV — using the tools and concepts from the lecture.</p>
+</div>
+
+<!-- PHASE 0 -->
+<div class="phase-card" id="phase0">
+  <div class="phase-header">
+    <div class="phase-num">0</div>
+    <div>
+      <div class="phase-title">Phase 0 — Pre-Flight Legal Check</div>
+      <div class="phase-subtitle">Slides 26–29 · Always run this before writing any scraping code</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Slides 26–29 are clear: check <code>robots.txt</code> and the Terms of Service before scraping any site. Create <code>check_robots.py</code>:</p>
+  <div class="code-block">
+    <span class="cb-label">check_robots.py</span><br>
+    <span class="kw">import</span> requests<br><br>
+    target = <span class="str">"http://quotes.toscrape.com"</span><br>
+    robots = requests.<span class="fn">get</span>(<span class="str">f"{target}/robots.txt"</span>)<br>
+    <span class="fn">print</span>(<span class="str">f"Status : {robots.status_code}"</span>)<br>
+    <span class="fn">print</span>(robots.text <span class="kw">or</span> <span class="str">"(empty — no crawl restrictions)"</span>)
+  </div>
+  <div class="expected-box">
+    <div class="eb-label">Expected Output</div>
+    <code>Status : 200<br>(empty — no crawl restrictions)</code>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin:.9rem 0 .5rem"><strong>Answer these questions before every real project:</strong></p>
+  <ul class="checklist">
+    <li>Does <code>robots.txt</code> allow access to the target path?</li>
+    <li>Does the Terms of Service prohibit automated access?</li>
+    <li>Is there a public API that makes scraping unnecessary?</li>
+    <li>Will the data contain personal information? (GDPR scope?)</li>
+    <li>Have you added a rate-limiting delay between requests (≥ 1–2 s)?</li>
+  </ul>
+</div>
+
+<!-- PHASE 1 -->
+<div class="phase-card" id="phase1">
+  <div class="phase-header">
+    <div class="phase-num">1</div>
+    <div>
+      <div class="phase-title">Phase 1 — Inspect the DOM in Your Browser</div>
+      <div class="phase-subtitle">Slides 10–12 · Understand the page structure before writing code</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Open <strong>Firefox</strong> inside your VM and navigate to <code>http://quotes.toscrape.com</code>.</p>
+  <ol class="phase-steps">
+    <li>Right-click a quote → <strong>Inspect Element</strong> (or press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">F12</kbd>). Find the container wrapping one complete quote block.</li>
+    <li>Expand the element tree and identify the child tags for: quote text, author name, and each tag link.</li>
+    <li>Write down the CSS selector for each — you will need them in Phase 2.</li>
+    <li>Right-click → <strong>View Page Source</strong> (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+U</kbd>). Search (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+F</kbd>) for the first quote text. It <strong>is</strong> in the source → confirms static site.</li>
+    <li>Now open <code>http://quotes.toscrape.com<strong>/js/</strong></code> → View Page Source → search for the same quote. It is <strong>NOT</strong> there → confirms dynamic site.</li>
+  </ol>
+  <div class="compare-wrapper" style="margin-top:.8rem">
+    <table class="compare">
+      <thead><tr><th>Data</th><th>HTML Tag</th><th>CSS Selector</th></tr></thead>
+      <tbody>
+        <tr><td>Quote container</td><td><code>&lt;div&gt;</code></td><td><code class="win">div.quote</code></td></tr>
+        <tr><td>Quote text</td><td><code>&lt;span&gt;</code></td><td><code class="win">span.text</code></td></tr>
+        <tr><td>Author name</td><td><code>&lt;small&gt;</code></td><td><code class="win">small.author</code></td></tr>
+        <tr><td>Tag links</td><td><code>&lt;a&gt;</code></td><td><code class="win">a.tag</code></td></tr>
+        <tr><td>Next page button</td><td><code>&lt;li&gt; &gt; &lt;a&gt;</code></td><td><code class="win">li.next &gt; a</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div class="phase-card" id="phase2">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <div>
+      <div class="phase-title">Phase 2 — Scrape the Static Version with BeautifulSoup</div>
+      <div class="phase-subtitle">Slides 13–14 · requests + bs4 + multi-page pagination</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Create <code>~/web-scraping-lab/phase2_static.py</code>. This scraper automatically follows all 10 pages.</p>
+  <div class="code-block">
+    <span class="cb-label">phase2_static.py — BeautifulSoup</span><br>
+    <span class="kw">import</span> requests<br>
+    <span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup<br>
+    <span class="kw">import</span> time<br><br>
+    BASE_URL   = <span class="str">"http://quotes.toscrape.com"</span><br>
+    all_quotes = []<br>
+    page_url   = BASE_URL<br><br>
+    <span class="kw">while</span> page_url:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;resp = requests.<span class="fn">get</span>(page_url, headers={<span class="str">"User-Agent"</span>: <span class="str">"SRH-Lab-Bot/1.0"</span>})<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> resp.status_code != <span class="num">200</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"Error {resp.status_code} — stopping"</span>); <span class="kw">break</span><br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;soup = BeautifulSoup(resp.text, <span class="str">"html.parser"</span>)<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> block <span class="kw">in</span> soup.<span class="fn">find_all</span>(<span class="str">"div"</span>, class_=<span class="str">"quote"</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text   = block.<span class="fn">find</span>(<span class="str">"span"</span>, class_=<span class="str">"text"</span>).<span class="fn">get_text</span>(strip=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author = block.<span class="fn">find</span>(<span class="str">"small"</span>, class_=<span class="str">"author"</span>).<span class="fn">get_text</span>(strip=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tags   = [t.<span class="fn">get_text</span>(strip=<span class="kw">True</span>) <span class="kw">for</span> t <span class="kw">in</span> block.<span class="fn">find_all</span>(<span class="str">"a"</span>, class_=<span class="str">"tag"</span>)]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all_quotes.<span class="fn">append</span>({<span class="str">"quote"</span>: text, <span class="str">"author"</span>: author, <span class="str">"tags"</span>: <span class="str">", "</span>.<span class="fn">join</span>(tags)})<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;nxt      = soup.<span class="fn">find</span>(<span class="str">"li"</span>, class_=<span class="str">"next"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page_url = BASE_URL + nxt.<span class="fn">find</span>(<span class="str">"a"</span>)[<span class="str">"href"</span>] <span class="kw">if</span> nxt <span class="kw">else</span> <span class="kw">None</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;time.<span class="fn">sleep</span>(<span class="num">1</span>)  <span class="cm"># polite rate limit — Slide 29</span><br><br>
+    <span class="fn">print</span>(<span class="str">f"Collected {len(all_quotes)} quotes"</span>)<br>
+    <span class="fn">print</span>(all_quotes[<span class="num">0</span>])
+  </div>
+  <div class="verify-block">
+    <span class="vb-label">Run it</span><br>
+    <span class="vb-cmd">python3 phase2_static.py</span><br>
+    <span class="vb-out">Collected 100 quotes</span><br>
+    <span class="vb-out">{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, deep-thoughts, ...'}</span>
+  </div>
+  <div class="expected-box">
+    <div class="eb-label">What to check</div>
+    <code>len(all_quotes)</code> must equal <strong>100</strong> (10 pages × 10 quotes). If it's 10, pagination is not working. If it's 0, re-check the CSS selectors from Phase 1.
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div class="phase-card" id="phase3">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <div>
+      <div class="phase-title">Phase 3 — Prove Why Static Scraping Fails on Dynamic Sites</div>
+      <div class="phase-subtitle">Slides 18–19 · The core motivation for browser automation</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Run the identical BeautifulSoup code against the <strong>JavaScript-rendered</strong> <code>/js/</code> URL. Create <code>phase3_broken.py</code>:</p>
+  <div class="code-block">
+    <span class="cb-label">phase3_broken.py — BeautifulSoup on a JS page</span><br>
+    <span class="kw">import</span> requests<br>
+    <span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup<br><br>
+    response = requests.<span class="fn">get</span>(<span class="str">"http://quotes.toscrape.com/js/"</span>)<br>
+    soup     = BeautifulSoup(response.text, <span class="str">"html.parser"</span>)<br><br>
+    quotes = soup.<span class="fn">find_all</span>(<span class="str">"div"</span>, class_=<span class="str">"quote"</span>)<br>
+    <span class="fn">print</span>(<span class="str">f"Quotes found: {len(quotes)}"</span>)<br>
+    <span class="fn">print</span>(<span class="str">"--- Raw HTML snippet (shows empty div) ---"</span>)<br>
+    <span class="fn">print</span>(response.text[<span class="num">3000</span>:<span class="num">3400</span>])
+  </div>
+  <div class="expected-box">
+    <div class="eb-label">Expected Output — this is the proof</div>
+    <code>Quotes found: 0<br>--- Raw HTML snippet ---<br>&lt;div id="quotes"&gt;&lt;/div&gt;   &lt;!-- JavaScript fills this after load --&gt;</code>
+  </div>
+  <div class="callout warn" style="margin-top:.8rem">
+    <strong>Why zero?</strong>
+    <p>The <code>/js/</code> page delivers an empty <code>&lt;div id="quotes"&gt;&lt;/div&gt;</code>. A JavaScript file fills it after the browser executes it. The <code>requests</code> library never runs JavaScript — it only fetches the initial HTML. This is precisely the problem described on slides 18–19, and why we need Playwright in Phase 4.</p>
+  </div>
+</div>
+
+<!-- PHASE 4 -->
+<div class="phase-card" id="phase4">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <div>
+      <div class="phase-title">Phase 4 — Scrape the Dynamic Version with Playwright</div>
+      <div class="phase-subtitle">Slides 22–23 · Headless Chromium + auto-wait</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Playwright launches a real Chromium browser, waits for JavaScript to populate the DOM, then extracts data with the same CSS selectors. Create <code>phase4_dynamic.py</code>:</p>
+  <div class="code-block">
+    <span class="cb-label">phase4_dynamic.py — Playwright (single page)</span><br>
+    <span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright<br><br>
+    all_quotes = []<br><br>
+    <span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># headless=True → no visible window (best practice, Slide 23)</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser = p.chromium.<span class="fn">launch</span>(headless=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page    = browser.<span class="fn">new_page</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">goto</span>(<span class="str">"http://quotes.toscrape.com/js/"</span>)<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Auto-wait until at least one quote block appears in the DOM</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Playwright handles this natively — no time.sleep() needed here</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">wait_for_selector</span>(<span class="str">"div.quote"</span>)<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> block <span class="kw">in</span> page.<span class="fn">query_selector_all</span>(<span class="str">"div.quote"</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text   = block.<span class="fn">query_selector</span>(<span class="str">"span.text"</span>).<span class="fn">inner_text</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author = block.<span class="fn">query_selector</span>(<span class="str">"small.author"</span>).<span class="fn">inner_text</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tags   = [t.<span class="fn">inner_text</span>() <span class="kw">for</span> t <span class="kw">in</span> block.<span class="fn">query_selector_all</span>(<span class="str">"a.tag"</span>)]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all_quotes.<span class="fn">append</span>({<span class="str">"quote"</span>: text, <span class="str">"author"</span>: author, <span class="str">"tags"</span>: <span class="str">", "</span>.<span class="fn">join</span>(tags)})<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser.<span class="fn">close</span>()<br><br>
+    <span class="fn">print</span>(<span class="str">f"Quotes found: {len(all_quotes)}"</span>)  <span class="cm"># 10 — first page only</span><br>
+    <span class="fn">print</span>(all_quotes[<span class="num">0</span>])
+  </div>
+  <div class="expected-box">
+    <div class="eb-label">Expected Output — same selectors as Phase 3, now it works</div>
+    <code>Quotes found: 10<br>{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, ...'}</code>
+  </div>
+  <div class="callout tip">
+    <strong>Debugging tip — use headed mode</strong>
+    <p>Change <code>headless=True</code> to <code>headless=False</code> to watch Chromium load the page visually. Useful when a selector returns <code>None</code>. Switch back to <code>True</code> before submitting.</p>
+  </div>
+</div>
+
+<!-- PHASE 5 -->
+<div class="phase-card" id="phase5">
+  <div class="phase-header">
+    <div class="phase-num">5</div>
+    <div>
+      <div class="phase-title">Phase 5 — Handle Pagination on a Dynamic Site</div>
+      <div class="phase-subtitle">Key concept: click the Next button and wait for new content to load</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">On a dynamic site there is no raw <code>href</code> to follow. You must programmatically <strong>click</strong> the Next button and wait for the DOM to update. Create <code>phase5_paginated.py</code>:</p>
+  <div class="code-block">
+    <span class="cb-label">phase5_paginated.py — Playwright + pagination</span><br>
+    <span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright<br>
+    <span class="kw">import</span> time<br><br>
+    all_quotes = []<br><br>
+    <span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser  = p.chromium.<span class="fn">launch</span>(headless=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page     = browser.<span class="fn">new_page</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">goto</span>(<span class="str">"http://quotes.toscrape.com/js/"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">wait_for_selector</span>(<span class="str">"div.quote"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page_num = <span class="num">1</span><br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while True</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"Scraping page {page_num}..."</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> block <span class="kw">in</span> page.<span class="fn">query_selector_all</span>(<span class="str">"div.quote"</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all_quotes.<span class="fn">append</span>({<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"page"</span>:   page_num,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"quote"</span>:  block.<span class="fn">query_selector</span>(<span class="str">"span.text"</span>).<span class="fn">inner_text</span>(),<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"author"</span>: block.<span class="fn">query_selector</span>(<span class="str">"small.author"</span>).<span class="fn">inner_text</span>(),<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"tags"</span>: <span class="str">", "</span>.<span class="fn">join</span>(t.<span class="fn">inner_text</span>() <span class="kw">for</span> t <span class="kw">in</span> block.<span class="fn">query_selector_all</span>(<span class="str">"a.tag"</span>))<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next_btn = page.<span class="fn">query_selector</span>(<span class="str">"li.next > a"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> next_btn:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"No more pages."</span>); <span class="kw">break</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next_btn.<span class="fn">click</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">wait_for_selector</span>(<span class="str">"div.quote"</span>)   <span class="cm"># wait for new quotes</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time.<span class="fn">sleep</span>(<span class="num">1</span>)                          <span class="cm"># polite pause — Slide 29</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page_num += <span class="num">1</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser.<span class="fn">close</span>()<br><br>
+    <span class="fn">print</span>(<span class="str">f"\nTotal quotes: {len(all_quotes)}"</span>)
+  </div>
+  <div class="expected-box">
+    <div class="eb-label">Expected Output</div>
+    <code>Scraping page 1...<br>Scraping page 2...<br>... (10 pages total)<br>No more pages.<br>Total quotes: 100</code>
+  </div>
+</div>
+
+<!-- PHASE 6 -->
+<div class="phase-card" id="phase6">
+  <div class="phase-header">
+    <div class="phase-num">6</div>
+    <div>
+      <div class="phase-title">Phase 6 — Save to CSV (Assignment Deliverable)</div>
+      <div class="phase-subtitle">Slide 30 · Store scraped data as a structured table in a CSV file</div>
+    </div>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">This phase directly fulfils <strong>Slide 30</strong>. Create the complete solution file <code>web_scraping_lab.py</code> — it combines Phases 0, 5, and 6 in one script:</p>
+  <div class="code-block">
+    <span class="cb-label">web_scraping_lab.py — Complete Solution (Slide 30 deliverable)</span><br>
+    <span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright<br>
+    <span class="kw">import</span> csv, time, requests<br><br>
+    <span class="cm"># ── Phase 0: Legal Pre-Flight ────────────────────</span><br>
+    robots = requests.<span class="fn">get</span>(<span class="str">"http://quotes.toscrape.com/robots.txt"</span>)<br>
+    <span class="fn">print</span>(<span class="str">"robots.txt:"</span>, robots.text <span class="kw">or</span> <span class="str">"(no restrictions)"</span>)<br><br>
+    <span class="cm"># ── Phase 5: Dynamic Scraping ────────────────────</span><br>
+    all_quotes = []<br><br>
+    <span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser = p.chromium.<span class="fn">launch</span>(headless=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page    = browser.<span class="fn">new_page</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">goto</span>(<span class="str">"http://quotes.toscrape.com/js/"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page.<span class="fn">wait_for_selector</span>(<span class="str">"div.quote"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;page_num = <span class="num">1</span><br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while True</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> block <span class="kw">in</span> page.<span class="fn">query_selector_all</span>(<span class="str">"div.quote"</span>):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all_quotes.<span class="fn">append</span>({<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"page"</span>:   page_num,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"quote"</span>:  block.<span class="fn">query_selector</span>(<span class="str">"span.text"</span>).<span class="fn">inner_text</span>(),<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"author"</span>: block.<span class="fn">query_selector</span>(<span class="str">"small.author"</span>).<span class="fn">inner_text</span>(),<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"tags"</span>: <span class="str">", "</span>.<span class="fn">join</span>(t.<span class="fn">inner_text</span>() <span class="kw">for</span> t <span class="kw">in</span> block.<span class="fn">query_selector_all</span>(<span class="str">"a.tag"</span>))<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nxt = page.<span class="fn">query_selector</span>(<span class="str">"li.next > a"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> nxt: <span class="kw">break</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nxt.<span class="fn">click</span>(); page.<span class="fn">wait_for_selector</span>(<span class="str">"div.quote"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time.<span class="fn">sleep</span>(<span class="num">1</span>); page_num += <span class="num">1</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;browser.<span class="fn">close</span>()<br><br>
+    <span class="cm"># ── Phase 6: Save to CSV ─────────────────────────</span><br>
+    <span class="kw">with</span> <span class="fn">open</span>(<span class="str">"quotes_dynamic.csv"</span>, <span class="str">"w"</span>, newline=<span class="str">""</span>, encoding=<span class="str">"utf-8"</span>) <span class="kw">as</span> f:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;writer = csv.<span class="cls">DictWriter</span>(f, fieldnames=[<span class="str">"page"</span>,<span class="str">"quote"</span>,<span class="str">"author"</span>,<span class="str">"tags"</span>])<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;writer.<span class="fn">writeheader</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;writer.<span class="fn">writerows</span>(all_quotes)<br><br>
+    <span class="fn">print</span>(<span class="str">f"Done — {len(all_quotes)} rows saved to quotes_dynamic.csv"</span>)
+  </div>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; verify</span><br>
+    <span class="vb-cmd">python3 web_scraping_lab.py</span><br>
+    <span class="vb-out">robots.txt: (no restrictions)</span><br>
+    <span class="vb-out">Done — 100 rows saved to quotes_dynamic.csv</span><br><br>
+    <span class="vb-comment"># Inspect the CSV with pandas</span><br>
+    <span class="vb-cmd">python3 -c "import pandas as pd; df=pd.read_csv('quotes_dynamic.csv'); print(df.shape); print(df.head(3))"</span><br>
+    <span class="vb-out">(100, 4)</span><br>
+    <span class="vb-out">   page  quote                                     author           tags</span><br>
+    <span class="vb-out">0     1  "The world as we have created it...  Albert Einstein  change, ...</span>
+  </div>
+  <div class="expected-box">
+    <div class="eb-label">CSV must have</div>
+    <code>100 rows &nbsp;·&nbsp; 4 columns: page, quote, author, tags &nbsp;·&nbsp; UTF-8 encoded &nbsp;·&nbsp; header on row 1</code>
+  </div>
+</div>
+
+<!-- PHASE 7 -->
+<div class="phase-card" id="phase7">
+  <div class="phase-header">
+    <div class="phase-num ext">7</div>
+    <div>
+      <div class="phase-title">Phase 7 — Extension Challenges (Optional)</div>
+      <div class="phase-subtitle">Choose one or more to deepen your understanding</div>
+    </div>
+  </div>
+  <div class="tool-grid">
+    <div class="tool-item orange">
+      <strong>A — Scrapy Spider (Slides 15–16)</strong>
+      <span>Rewrite Phase 2 using a Scrapy spider. Add <code>DOWNLOAD_DELAY = 2</code> in settings.py. Run with <code>scrapy crawl quotes -o quotes_scrapy.csv</code>. Compare async speed with the sequential BeautifulSoup version.</span>
+    </div>
+    <div class="tool-item teal">
+      <strong>B — Headed Mode Debug (Slide 23)</strong>
+      <span>Change <code>headless=True</code> to <code>headless=False</code> in Phase 4. Watch Chromium navigate and render the page. Use this to verify selector behaviour visually. Switch back to <code>True</code> before submitting.</span>
+    </div>
+    <div class="tool-item green">
+      <strong>C — Add Error Handling</strong>
+      <span>Wrap each <code>.inner_text()</code> call in a safe helper: <code>def safe(el, sel): r=el.query_selector(sel); return r.inner_text() if r else "N/A"</code>. Prevents crashes on pages with missing elements.</span>
+    </div>
+    <div class="tool-item blue">
+      <strong>D — Analyse with Pandas</strong>
+      <span>Load the CSV into pandas. Find: (1) most-quoted author — <code>df["author"].value_counts()</code>; (2) most common tag — <code>df["tags"].str.split(", ").explode().value_counts()</code>; (3) average tags per quote.</span>
+    </div>
+    <div class="tool-item purple">
+      <strong>E — New site: books.toscrape.com</strong>
+      <span>Apply the full pipeline to <code>books.toscrape.com</code> (50 pages, 1000 books). Columns: title, price, rating, availability. Store as <code>books.csv</code>. This is a static site — BeautifulSoup is sufficient.</span>
+    </div>
+    <div class="tool-item red">
+      <strong>F — robots.txt Parser Function</strong>
+      <span>Write <code>def check_robots(base_url, path)</code> that fetches <code>/robots.txt</code>, parses all <code>Disallow</code> rules for <code>User-agent: *</code>, and returns <code>True</code> if scraping <code>path</code> is allowed.</span>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMISSION CHECKLIST -->
+<div class="phase-card" id="submission" style="border:2px solid var(--srh-orange);">
+  <div class="phase-header">
+    <div class="phase-num" style="background:var(--green);">✓</div>
+    <div>
+      <div class="phase-title">Submission Checklist (Slide 30)</div>
+      <div class="phase-subtitle">Verify every item before handing in your work</div>
+    </div>
+  </div>
+  <ul class="checklist">
+    <li><code>quotes_dynamic.csv</code> exists in <code>~/web-scraping-lab/</code> and contains exactly <strong>100 rows</strong></li>
+    <li>CSV has 4 columns: <strong>page, quote, author, tags</strong> with a header row on line 1</li>
+    <li><code>check_robots.py</code> was run and confirmed no <code>Disallow</code> rules apply to the target path</li>
+    <li>A <code>time.sleep(1)</code> or equivalent delay is present between paginated requests</li>
+    <li>The main scraper uses <strong>Playwright</strong> (not just BeautifulSoup) to handle the JS-rendered <code>/js/</code> URL</li>
+    <li><code>phase3_broken.py</code> output confirms BeautifulSoup returned <strong>0 quotes</strong> on the <code>/js/</code> URL</li>
+    <li>All scripts run inside the activated <code>venv</code> virtual environment</li>
+    <li>(Extension E — if attempted) <code>books.csv</code> with 1000 rows and columns: title, price, rating, availability</li>
+  </ul>
+
+  <div class="compare-wrapper" style="margin-top:1.2rem">
+    <table class="lab-summary-table">
+      <thead>
+        <tr><th>Phase</th><th>Skill Practiced</th><th>Lecture Reference</th><th>File to Submit</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td>robots.txt + ethical checklist</td><td><span class="slide-ref">Slides 26–29</span></td><td><code>check_robots.py</code></td></tr>
+        <tr><td>1</td><td>DOM inspection in browser DevTools</td><td><span class="slide-ref">Slides 10–12</span></td><td>—</td></tr>
+        <tr><td>2</td><td>requests + BeautifulSoup + pagination</td><td><span class="slide-ref">Slides 13–14</span></td><td><code>phase2_static.py</code></td></tr>
+        <tr><td>3</td><td>Prove static scraper fails on JS page</td><td><span class="slide-ref">Slides 18–19</span></td><td><code>phase3_broken.py</code></td></tr>
+        <tr><td>4</td><td>Playwright: headless browser + auto-wait</td><td><span class="slide-ref">Slides 22–23</span></td><td><code>phase4_dynamic.py</code></td></tr>
+        <tr><td>5</td><td>Dynamic pagination via button click</td><td><span class="slide-ref">Key Concepts</span></td><td><code>phase5_paginated.py</code></td></tr>
+        <tr><td><strong>6</strong></td><td><strong>Complete pipeline → CSV (assignment)</strong></td><td><span class="slide-ref">Slide 30</span></td><td><strong><code>web_scraping_lab.py</code> + <code>quotes_dynamic.csv</code></strong></td></tr>
+        <tr><td>7</td><td>Extension challenges (optional)</td><td><span class="slide-ref">Slides 15–16</span></td><td><code>books.csv</code> (if done)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+  SRH Hochschule Heidelberg &nbsp;·&nbsp; Data Engineering 1 &nbsp;·&nbsp; Web Data — From Web Services to Web Scraping &nbsp;·&nbsp; Prof. Dr.-Ing. Binh Vu
+</footer>
+
+<script>
+// ═══════════════════════════════════════════
+// HTTP CYCLE INTERACTIVE WALKTHROUGH
+// ═══════════════════════════════════════════
+const HTTP_STEPS = [
+  {
+    label: 'Step 1 — DNS Resolution',
+    text: 'The scraper calls <strong>requests.get("https://example.com")</strong>. The OS resolves the hostname to an IP address via a DNS query. This happens transparently — Python\'s urllib3 handles it.',
+    active: ['http-dns', 'http-client'],
+    dim: ['http-tcp', 'http-tls', 'http-server', 'http-req', 'http-url', 'http-hdrs', 'http-status', 'http-body', 'http-reshdr', 'http-bs4', 'http-sel', 'http-js', 'http-spa', 'http-parse', 'http-dyn']
+  },
+  {
+    label: 'Step 2 — TCP Handshake',
+    text: 'A TCP connection is established to the server\'s IP on port 443 (HTTPS). This is the standard 3-way handshake: SYN → SYN-ACK → ACK. <strong>requests</strong> reuses connections via urllib3\'s connection pool.',
+    active: ['http-tcp', 'http-client'],
+    dim: ['http-dns', 'http-tls', 'http-server', 'http-req', 'http-url', 'http-hdrs', 'http-status', 'http-body', 'http-reshdr', 'http-bs4', 'http-sel', 'http-js', 'http-spa', 'http-parse', 'http-dyn']
+  },
+  {
+    label: 'Step 3 — TLS Handshake (HTTPS)',
+    text: 'For HTTPS, a TLS handshake encrypts the connection. The server presents its certificate; the client verifies it. All subsequent HTTP data travels encrypted. <strong>Important:</strong> set verify=True (default) in requests.get().',
+    active: ['http-tls', 'http-client'],
+    dim: ['http-dns', 'http-tcp', 'http-server', 'http-req', 'http-url', 'http-hdrs', 'http-status', 'http-body', 'http-reshdr', 'http-bs4', 'http-sel', 'http-js', 'http-spa', 'http-parse', 'http-dyn']
+  },
+  {
+    label: 'Step 4 — HTTP GET Request',
+    text: 'The scraper sends an HTTP GET request with headers including <strong>User-Agent</strong>, Accept, Accept-Encoding. Setting a realistic browser User-Agent reduces the chance of a 403 Forbidden response.',
+    active: ['http-client', 'http-req', 'http-url', 'http-hdrs'],
+    dim: ['http-dns', 'http-tcp', 'http-tls', 'http-server', 'http-status', 'http-body', 'http-reshdr', 'http-bs4', 'http-sel', 'http-js', 'http-spa', 'http-parse', 'http-dyn']
+  },
+  {
+    label: 'Step 5 — Server Response',
+    text: 'The web server returns an HTTP response: a <strong>status code</strong> (200 OK, 403 Forbidden, 404 Not Found, 429 Too Many Requests), response headers, and an HTML body. The scraper reads <code>response.status_code</code> and <code>response.text</code>.',
+    active: ['http-server', 'http-status', 'http-body', 'http-reshdr'],
+    dim: ['http-dns', 'http-tcp', 'http-tls', 'http-client', 'http-req', 'http-url', 'http-hdrs', 'http-bs4', 'http-sel', 'http-js', 'http-spa', 'http-parse', 'http-dyn']
+  },
+  {
+    label: 'Step 6 — Parse &amp; Extract',
+    text: 'The HTML body is passed to <strong>BeautifulSoup</strong>. CSS selectors or XPath locate the target elements. For dynamic sites, the initial HTML may be incomplete — a headless browser (Playwright/Selenium) must execute JavaScript to render the final DOM first.',
+    active: ['http-parse', 'http-bs4', 'http-sel', 'http-dyn', 'http-js', 'http-spa'],
+    dim: ['http-dns', 'http-tcp', 'http-tls', 'http-server', 'http-client', 'http-req', 'http-url', 'http-hdrs', 'http-status', 'http-body', 'http-reshdr']
+  }
+];
+
+let httpIdx = -1, httpTimer = null;
+
+function httpApply(idx) {
+  const allIds = [
+    'http-client','http-dns','http-tcp','http-tls','http-server',
+    'http-req','http-url','http-hdrs','http-status','http-body','http-reshdr',
+    'http-bs4','http-sel','http-js','http-spa','http-parse','http-dyn'
+  ];
+  allIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('s-active', 's-dim');
+  });
+  if (idx < 0) return;
+  const step = HTTP_STEPS[idx];
+  step.active.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('s-active'); });
+  step.dim.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('s-dim'); });
+  document.getElementById('http-info-lbl').innerHTML = step.label;
+  document.getElementById('http-info-txt').innerHTML = step.text;
+  for (let i = 0; i < 6; i++) {
+    const ps = document.getElementById('hps' + i);
+    ps.className = 'step-ps';
+    if (i < idx) ps.classList.add('done');
+    else if (i === idx) ps.classList.add('active');
+  }
+  document.getElementById('http-step-counter').textContent = 'Step ' + (idx+1) + ' / 6';
+  document.getElementById('http-prev').disabled = idx <= 0;
+  document.getElementById('http-next').disabled = idx >= HTTP_STEPS.length - 1;
+}
+
+function httpStep(dir) {
+  httpIdx = Math.min(HTTP_STEPS.length - 1, Math.max(0, httpIdx + dir));
+  if (httpIdx === 0 && dir === 1 && document.getElementById('http-step-counter').textContent === 'Step 0 / 6') httpIdx = 0;
+  if (document.getElementById('http-step-counter').textContent === 'Step 0 / 6') httpIdx = 0;
+  httpApply(httpIdx);
+}
+
+function httpAuto() {
+  if (httpTimer) { clearInterval(httpTimer); httpTimer = null; document.getElementById('http-auto').textContent = '▶ Auto'; return; }
+  document.getElementById('http-auto').textContent = '⏸ Pause';
+  if (httpIdx >= HTTP_STEPS.length - 1) { httpIdx = -1; }
+  httpTimer = setInterval(() => {
+    httpIdx++;
+    httpApply(httpIdx);
+    if (httpIdx >= HTTP_STEPS.length - 1) { clearInterval(httpTimer); httpTimer = null; document.getElementById('http-auto').textContent = '▶ Auto'; }
+  }, 1800);
+}
+
+function httpReset() {
+  if (httpTimer) { clearInterval(httpTimer); httpTimer = null; document.getElementById('http-auto').textContent = '▶ Auto'; }
+  httpIdx = -1;
+  const allIds = ['http-client','http-dns','http-tcp','http-tls','http-server','http-req','http-url','http-hdrs','http-status','http-body','http-reshdr','http-bs4','http-sel','http-js','http-spa','http-parse','http-dyn'];
+  allIds.forEach(id => { const el = document.getElementById(id); if(el) { el.classList.remove('s-active','s-dim'); }});
+  for (let i = 0; i < 6; i++) { const ps = document.getElementById('hps'+i); if(ps) ps.className = 'step-ps'; }
+  document.getElementById('http-info-lbl').textContent = 'Ready';
+  document.getElementById('http-info-txt').innerHTML = 'Click <strong>Next Step</strong> to walk through an HTTP request-response cycle.';
+  document.getElementById('http-step-counter').textContent = 'Step 0 / 6';
+  document.getElementById('http-prev').disabled = true;
+  document.getElementById('http-next').disabled = false;
+}
+
+// Fix first-click issue
+document.getElementById('http-next').addEventListener('click', function() {
+  if (httpIdx === -1) { httpIdx = 0; httpApply(0); }
+});
+
+
+// ═══════════════════════════════════════════
+// SCRAPING PIPELINE WALKTHROUGH
+// ═══════════════════════════════════════════
+const PIPE_STEPS = [
+  {
+    label: 'Step 1 — Define Target & Scope',
+    text: 'Identify the target URL(s), which data fields to extract, the volume of pages, and recurrence (one-time vs scheduled). Check <strong>robots.txt</strong> and ToS before proceeding. Document your data schema upfront.',
+    active: ['pipe0'], dim: ['pipe1','pipe2','pipe3','pipe4','pipe5','pipe6']
+  },
+  {
+    label: 'Step 2 — Send HTTP Request',
+    text: 'Use <strong>requests.get(url, headers=...)</strong> with a realistic User-Agent header. For authenticated sites, establish a Session() first. For JS-heavy sites, launch a Playwright browser instead.',
+    active: ['pipe1'], dim: ['pipe0','pipe2','pipe3','pipe4','pipe5','pipe6']
+  },
+  {
+    label: 'Step 3 — Handle Response',
+    text: 'Check <code>response.status_code</code>. 200 → proceed. 403 → headers/IP issue. 429 → rate limited, back off. 404 → skip. Add <code>time.sleep(2)</code> between requests as a minimum courtesy to the server.',
+    active: ['pipe2'], dim: ['pipe0','pipe1','pipe3','pipe4','pipe5','pipe6']
+  },
+  {
+    label: 'Step 4 — Parse HTML / DOM',
+    text: 'Pass <code>response.text</code> to <strong>BeautifulSoup(html, "html.parser")</strong>. For JS sites, use <code>page.content()</code> from Playwright after JavaScript has executed. This builds the parse tree in memory.',
+    active: ['pipe3'], dim: ['pipe0','pipe1','pipe2','pipe4','pipe5','pipe6']
+  },
+  {
+    label: 'Step 5 — Extract Data',
+    text: 'Navigate the parse tree with <strong>CSS selectors</strong> (<code>soup.select("span.price")</code>) or <strong>XPath</strong> (<code>response.xpath("//span[@class=\'price\']/text()")</code>). Extract text with <code>.get_text()</code> and attributes with <code>tag["href"]</code>.',
+    active: ['pipe4'], dim: ['pipe0','pipe1','pipe2','pipe3','pipe5','pipe6']
+  },
+  {
+    label: 'Step 6 — Follow Links (Crawl)',
+    text: 'Find pagination links and sub-page URLs. Add them to the queue for processing. Respect depth limits (e.g., 3 inner levels). Normalize URLs to avoid duplicates. Check <strong>robots.txt</strong> for each new domain encountered.',
+    active: ['pipe5'], dim: ['pipe0','pipe1','pipe2','pipe3','pipe4','pipe6']
+  },
+  {
+    label: 'Step 7 — Store & Export',
+    text: 'Write extracted data to CSV, JSON, or a database. In Scrapy, item pipelines handle this automatically. Deduplicate by URL hash. For large datasets, use append mode to avoid memory issues and enable resume-on-failure.',
+    active: ['pipe6'], dim: ['pipe0','pipe1','pipe2','pipe3','pipe4','pipe5']
+  }
+];
+
+let pipeIdx = -1, pipeTimer = null;
+
+function pipeApply(idx) {
+  for (let i = 0; i < 7; i++) {
+    const el = document.getElementById('pipe' + i);
+    if (!el) continue;
+    el.classList.remove('s-active', 's-dim');
+  }
+  if (idx < 0) return;
+  const step = PIPE_STEPS[idx];
+  step.active.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('s-active'); });
+  step.dim.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('s-dim'); });
+  document.getElementById('pipe-info-lbl').innerHTML = step.label;
+  document.getElementById('pipe-info-txt').innerHTML = step.text;
+  for (let i = 0; i < 7; i++) {
+    const ps = document.getElementById('pps' + i);
+    ps.className = 'step-ps';
+    if (i < idx) ps.classList.add('done');
+    else if (i === idx) ps.classList.add('active');
+  }
+  document.getElementById('pipe-step-counter').textContent = 'Step ' + (idx+1) + ' / 7';
+  document.getElementById('pipe-prev').disabled = idx <= 0;
+  document.getElementById('pipe-next').disabled = idx >= PIPE_STEPS.length - 1;
+}
+
+function pipeStep(dir) {
+  if (pipeIdx === -1 && dir === 1) { pipeIdx = 0; pipeApply(0); return; }
+  pipeIdx = Math.min(PIPE_STEPS.length - 1, Math.max(0, pipeIdx + dir));
+  pipeApply(pipeIdx);
+}
+
+function pipeAuto() {
+  if (pipeTimer) { clearInterval(pipeTimer); pipeTimer = null; document.getElementById('pipe-auto').textContent = '▶ Auto'; return; }
+  document.getElementById('pipe-auto').textContent = '⏸ Pause';
+  if (pipeIdx >= PIPE_STEPS.length - 1) { pipeIdx = -1; }
+  pipeTimer = setInterval(() => {
+    pipeIdx++;
+    pipeApply(pipeIdx);
+    if (pipeIdx >= PIPE_STEPS.length - 1) { clearInterval(pipeTimer); pipeTimer = null; document.getElementById('pipe-auto').textContent = '▶ Auto'; }
+  }, 1800);
+}
+
+function pipeReset() {
+  if (pipeTimer) { clearInterval(pipeTimer); pipeTimer = null; document.getElementById('pipe-auto').textContent = '▶ Auto'; }
+  pipeIdx = -1;
+  for (let i = 0; i < 7; i++) {
+    const el = document.getElementById('pipe' + i);
+    if (el) { el.classList.remove('s-active','s-dim'); }
+    const ps = document.getElementById('pps' + i);
+    if (ps) ps.className = 'step-ps';
+  }
+  document.getElementById('pipe-info-lbl').textContent = 'Ready';
+  document.getElementById('pipe-info-txt').innerHTML = 'Click <strong>Next Step</strong> to walk through the scraping pipeline.';
+  document.getElementById('pipe-step-counter').textContent = 'Step 0 / 7';
+  document.getElementById('pipe-prev').disabled = true;
+  document.getElementById('pipe-next').disabled = false;
+}
+
+
+// ═══════════════════════════════════════════
+// DOM TREE EXPLORER
+// ═══════════════════════════════════════════
+function domHighlight(type) {
+  // Update button states
+  document.querySelectorAll('.dom-btn').forEach(btn => btn.classList.remove('active'));
+  const btnMap = { element: 'db-elem', text: 'db-text', attr: 'db-attr', all: 'db-all' };
+  document.querySelector('.' + btnMap[type]).classList.add('active');
+
+  // Highlight code lines
+  document.querySelectorAll('.dc-line').forEach(el => {
+    el.classList.remove('dom-hl');
+    const dt = el.getAttribute('data-domtype');
+    if (type === 'all' || dt === type) el.classList.add('dom-hl');
+  });
+
+  // Highlight tree nodes
+  document.querySelectorAll('.tn-box').forEach(el => {
+    el.classList.remove('dom-hl');
+    const dt = el.getAttribute('data-domtype');
+    if (type === 'all' || dt === type) el.classList.add('dom-hl');
+  });
+}
+
+// Initialize DOM diagram to show all highlighted
+domHighlight('all');
+
+
+// ═══════════════════════════════════════════
+// SIDEBAR ACTIVE LINK
+// ═══════════════════════════════════════════
+const sections = document.querySelectorAll('h2[id]');
+const navLinks = document.querySelectorAll('nav.sidebar a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
