@@ -1,7 +1,7 @@
 # Web Scraping Lab
 
 **Data Engineering 1 · SRH Hochschule Heidelberg**  
-Sumit Kulhadia
+Prof. Dr. Ing. Binh Vu & Sumit Kulhadia
 
 ---
 
