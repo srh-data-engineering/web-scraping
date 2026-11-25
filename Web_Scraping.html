@@ -1596,6 +1596,30 @@
   </div>
 </div>
 
+<!-- LAB.SH GUIDE -->
+<div style="background:#eef2ff;border:2px solid #818cf8;border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.5rem;">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:#818cf8;color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">RUNNING THE LAB</span>
+    <span style="font-size:1.1rem;font-weight:700;color:var(--text)">Use <code>lab.sh</code> to run any phase</span>
+  </div>
+  <p style="font-size:.88rem;color:#333;margin-bottom:.9rem">The setup script created <code>~/web-scraping-lab/lab.sh</code> — a helper that activates the virtual environment and runs your script in a single command. Use it whenever you open a fresh terminal and don't want to manually source the venv first.</p>
+  <div class="verify-block" style="margin:0">
+    <span class="vb-label">Usage — from ~/web-scraping-lab/</span><br>
+    <span class="vb-comment"># Run any phase script (activates venv automatically)</span><br>
+    <span class="vb-cmd">bash lab.sh &lt;script.py&gt;</span><br><br>
+    <span class="vb-comment"># Phase-by-phase examples</span><br>
+    <span class="vb-cmd">bash lab.sh check_robots.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase2_static.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase3_broken.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase4_dynamic.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase5_paginated.py</span><br>
+    <span class="vb-cmd">bash lab.sh web_scraping_lab.py</span>
+  </div>
+  <div style="margin-top:.9rem;padding:.8rem 1rem;background:#fff;border-radius:8px;border:1px solid #c7d2fe;font-size:.85rem;color:#333">
+    <strong>Tip:</strong> If you already activated the venv in this terminal session, you can run scripts directly: <code>python3 phase2_static.py</code>. <code>lab.sh</code> is just a shortcut so you never get a <em>"No module named…"</em> error from forgetting to activate.
+  </div>
+</div>
+
 <div class="callout info">
   <strong>Environment: Linux Virtual Machine on Mac or Windows</strong>
   <p>All students run this lab inside a Linux VM (Ubuntu 22.04 recommended). The setup script handles Python, the virtual environment, all libraries, Playwright Chromium, and writes every lab file for you. Estimated run time: 3–5 minutes.</p>
@@ -1879,14 +1903,6 @@
     <strong>404 on robots.txt is a green light</strong>
     <p>A 404 means the site published no robots.txt — there are no crawl restrictions. A 200 with <code>Disallow:</code> rules would need investigation. For <code>quotes.toscrape.com</code> a 404 is expected; the site was built for scraping practice.</p>
   </div>
-  <p style="font-size:.88rem;color:#444;margin:.9rem 0 .5rem"><strong>Answer these questions before every real project:</strong></p>
-  <ul class="checklist">
-    <li>Does <code>robots.txt</code> allow access to the target path?</li>
-    <li>Does the Terms of Service prohibit automated access?</li>
-    <li>Is there a public API that makes scraping unnecessary?</li>
-    <li>Will the data contain personal information? (GDPR scope?)</li>
-    <li>Have you added a rate-limiting delay between requests (≥ 1–2 s)?</li>
-  </ul>
 </div>
 
 <!-- PHASE 1 -->
