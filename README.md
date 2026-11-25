@@ -9,7 +9,6 @@ Sumit Kulhadia
 
 | File | Description |
 |---|---|
-| `Web_Scraping.pdf` | Lecture slides — Web data: from web services to web scraping |
 | `Web_Scraping.html` | Interactive study guide with diagrams, tool comparisons, and the full hands-on lab |
 | `web_scraping_setup.sh` | One-shot setup script — installs everything and writes all lab files |
 
