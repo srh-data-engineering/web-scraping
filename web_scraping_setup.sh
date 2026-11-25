@@ -100,7 +100,12 @@ import requests
 target = "http://quotes.toscrape.com"
 r = requests.get(f"{target}/robots.txt")
 print(f"Status : {r.status_code}")
-print(r.text or "(empty — no crawl restrictions)")
+if r.status_code == 404:
+    print("(no robots.txt — site imposes no crawl restrictions)")
+elif r.text.strip():
+    print(r.text)
+else:
+    print("(empty robots.txt — no crawl restrictions)")
 PYEOF
 
 # phase2_static.py ─────────────────────────────────────────────
@@ -141,8 +146,9 @@ response = requests.get("http://quotes.toscrape.com/js/")
 soup     = BeautifulSoup(response.text, "html.parser")
 quotes   = soup.find_all("div", class_="quote")
 print(f"Quotes found: {len(quotes)}")   # expected: 0  — proves JS problem
-print("\n--- HTML snippet (shows empty div) ---")
-print(response.text[2800:3200])
+
+print("\n--- Quotes container (JavaScript fills this after page load) ---")
+print(soup.find(id="quotes"))  # prints <div id="quotes"></div> — empty until JS runs
 PYEOF
 
 # phase4_dynamic.py ────────────────────────────────────────────
@@ -214,7 +220,10 @@ import csv, time, requests
 
 # Phase 0: legal pre-flight
 robots = requests.get("http://quotes.toscrape.com/robots.txt")
-print("robots.txt:", robots.text or "(no restrictions)\n")
+if robots.status_code == 404:
+    print("robots.txt: not found (404) — no crawl restrictions\n")
+else:
+    print("robots.txt:", robots.text.strip() or "(empty — no restrictions)", "\n")
 
 # Phase 5: dynamic scraping with Playwright
 all_quotes = []

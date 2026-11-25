@@ -489,8 +489,6 @@
     <a href="#phase4">↳ Phase 4 — Playwright</a>
     <a href="#phase5">↳ Phase 5 — Pagination</a>
     <a href="#phase6">↳ Phase 6 — Save CSV</a>
-    <a href="#phase7">↳ Phase 7 — Extensions</a>
-    <a href="#submission">↳ Submission Checklist</a>
   </div>
 </nav>
 
@@ -1857,18 +1855,29 @@
       <div class="phase-subtitle">Slides 26–29 · Always run this before writing any scraping code</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Slides 26–29 are clear: check <code>robots.txt</code> and the Terms of Service before scraping any site. Create <code>check_robots.py</code>:</p>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Slides 26–29 are clear: check <code>robots.txt</code> and the Terms of Service before scraping any site. The file <code>check_robots.py</code> was written to <code>~/web-scraping-lab/</code> by the setup script:</p>
   <div class="code-block">
     <span class="cb-label">check_robots.py</span><br>
     <span class="kw">import</span> requests<br><br>
     target = <span class="str">"http://quotes.toscrape.com"</span><br>
-    robots = requests.<span class="fn">get</span>(<span class="str">f"{target}/robots.txt"</span>)<br>
-    <span class="fn">print</span>(<span class="str">f"Status : {robots.status_code}"</span>)<br>
-    <span class="fn">print</span>(robots.text <span class="kw">or</span> <span class="str">"(empty — no crawl restrictions)"</span>)
+    r = requests.<span class="fn">get</span>(<span class="str">f"{target}/robots.txt"</span>)<br>
+    <span class="fn">print</span>(<span class="str">f"Status : {r.status_code}"</span>)<br>
+    <span class="kw">if</span> r.status_code == <span class="num">404</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"(no robots.txt — site imposes no crawl restrictions)"</span>)<br>
+    <span class="kw">elif</span> r.text.<span class="fn">strip</span>():<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(r.text)<br>
+    <span class="kw">else</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"(empty robots.txt — no crawl restrictions)"</span>)
   </div>
-  <div class="expected-box">
-    <div class="eb-label">Expected Output</div>
-    <code>Status : 200<br>(empty — no crawl restrictions)</code>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 check_robots.py</span><br>
+    <span class="vb-out">Status : 404</span><br>
+    <span class="vb-out">(no robots.txt — site imposes no crawl restrictions)</span>
+  </div>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>404 on robots.txt is a green light</strong>
+    <p>A 404 means the site published no robots.txt — there are no crawl restrictions. A 200 with <code>Disallow:</code> rules would need investigation. For <code>quotes.toscrape.com</code> a 404 is expected; the site was built for scraping practice.</p>
   </div>
   <p style="font-size:.88rem;color:#444;margin:.9rem 0 .5rem"><strong>Answer these questions before every real project:</strong></p>
   <ul class="checklist">
@@ -1886,16 +1895,19 @@
     <div class="phase-num">1</div>
     <div>
       <div class="phase-title">Phase 1 — Inspect the DOM in Your Browser</div>
-      <div class="phase-subtitle">Slides 10–12 · Understand the page structure before writing code</div>
+      <div class="phase-subtitle">Slides 10–12 · Use Chrome on your host Mac — the VM has no desktop</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Open <strong>Firefox</strong> inside your VM and navigate to <code>http://quotes.toscrape.com</code>.</p>
+  <div class="callout info" style="margin-bottom:.8rem">
+    <strong>Use Chrome on your host Mac, not in the VM</strong>
+    <p>Your Ubuntu VM runs headless (no graphical desktop). Open Chrome on your Mac and navigate to the URLs below — both sites are reachable from your host machine.</p>
+  </div>
   <ol class="phase-steps">
-    <li>Right-click a quote → <strong>Inspect Element</strong> (or press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">F12</kbd>). Find the container wrapping one complete quote block.</li>
-    <li>Expand the element tree and identify the child tags for: quote text, author name, and each tag link.</li>
-    <li>Write down the CSS selector for each — you will need them in Phase 2.</li>
-    <li>Right-click → <strong>View Page Source</strong> (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+U</kbd>). Search (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+F</kbd>) for the first quote text. It <strong>is</strong> in the source → confirms static site.</li>
-    <li>Now open <code>http://quotes.toscrape.com<strong>/js/</strong></code> → View Page Source → search for the same quote. It is <strong>NOT</strong> there → confirms dynamic site.</li>
+    <li>On your Mac, open Chrome and navigate to <code>http://quotes.toscrape.com</code>.</li>
+    <li>Right-click any quote text → <strong>Inspect</strong> (or press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">F12</kbd>). Find the <code>&lt;div class="quote"&gt;</code> container wrapping one complete quote block.</li>
+    <li>Expand the element tree and identify the child tags for: quote text, author name, and each tag link. Note the CSS selector for each — you need them in Phase 2.</li>
+    <li>Press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+U</kbd> (Cmd+U on Mac) to open View Page Source. Search (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+F</kbd>) for the first quote text. It <strong>is</strong> in the source → confirms static site.</li>
+    <li>Now navigate to <code>http://quotes.toscrape.com<strong>/js/</strong></code> → View Page Source → search for the same quote text. It is <strong>NOT</strong> there → confirms the content is rendered by JavaScript after page load.</li>
   </ol>
   <div class="compare-wrapper" style="margin-top:.8rem">
     <table class="compare">
@@ -1908,6 +1920,10 @@
         <tr><td>Next page button</td><td><code>&lt;li&gt; &gt; &lt;a&gt;</code></td><td><code class="win">li.next &gt; a</code></td></tr>
       </tbody>
     </table>
+  </div>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>No script to run for Phase 1</strong>
+    <p>This is a browser inspection exercise. The CSS selectors you identify here are the same ones already used in <code>phase2_static.py</code>. Continue to Phase 2 once you can see that the static URL has quote text in its source but the <code>/js/</code> URL does not.</p>
   </div>
 </div>
 
@@ -1946,7 +1962,7 @@
     <span class="fn">print</span>(all_quotes[<span class="num">0</span>])
   </div>
   <div class="verify-block">
-    <span class="vb-label">Run it</span><br>
+    <span class="vb-label">Run &amp; Verify</span><br>
     <span class="vb-cmd">python3 phase2_static.py</span><br>
     <span class="vb-out">Collected 100 quotes</span><br>
     <span class="vb-out">{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, deep-thoughts, ...'}</span>
@@ -1966,21 +1982,25 @@
       <div class="phase-subtitle">Slides 18–19 · The core motivation for browser automation</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Run the identical BeautifulSoup code against the <strong>JavaScript-rendered</strong> <code>/js/</code> URL. Create <code>phase3_broken.py</code>:</p>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Run the identical BeautifulSoup code against the <strong>JavaScript-rendered</strong> <code>/js/</code> URL. The file <code>phase3_broken.py</code> was written by the setup script:</p>
   <div class="code-block">
     <span class="cb-label">phase3_broken.py — BeautifulSoup on a JS page</span><br>
     <span class="kw">import</span> requests<br>
     <span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup<br><br>
     response = requests.<span class="fn">get</span>(<span class="str">"http://quotes.toscrape.com/js/"</span>)<br>
-    soup     = BeautifulSoup(response.text, <span class="str">"html.parser"</span>)<br><br>
+    soup     = <span class="cls">BeautifulSoup</span>(response.text, <span class="str">"html.parser"</span>)<br><br>
     quotes = soup.<span class="fn">find_all</span>(<span class="str">"div"</span>, class_=<span class="str">"quote"</span>)<br>
-    <span class="fn">print</span>(<span class="str">f"Quotes found: {len(quotes)}"</span>)<br>
-    <span class="fn">print</span>(<span class="str">"--- Raw HTML snippet (shows empty div) ---"</span>)<br>
-    <span class="fn">print</span>(response.text[<span class="num">3000</span>:<span class="num">3400</span>])
+    <span class="fn">print</span>(<span class="str">f"Quotes found: {len(quotes)}"</span>)<br><br>
+    <span class="fn">print</span>(<span class="str">"\n--- Quotes container (JavaScript fills this after page load) ---"</span>)<br>
+    <span class="fn">print</span>(soup.<span class="fn">find</span>(id=<span class="str">"quotes"</span>))  <span class="cm"># prints the empty div — JS has not run yet</span>
   </div>
-  <div class="expected-box">
-    <div class="eb-label">Expected Output — this is the proof</div>
-    <code>Quotes found: 0<br>--- Raw HTML snippet ---<br>&lt;div id="quotes"&gt;&lt;/div&gt;   &lt;!-- JavaScript fills this after load --&gt;</code>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 phase3_broken.py</span><br>
+    <span class="vb-out">Quotes found: 0</span><br>
+    <span class="vb-out"></span><br>
+    <span class="vb-out">--- Quotes container (JavaScript fills this after page load) ---</span><br>
+    <span class="vb-out">&lt;div id="quotes"&gt;&lt;/div&gt;</span>
   </div>
   <div class="callout warn" style="margin-top:.8rem">
     <strong>Why zero?</strong>
@@ -2019,9 +2039,15 @@
     <span class="fn">print</span>(<span class="str">f"Quotes found: {len(all_quotes)}"</span>)  <span class="cm"># 10 — first page only</span><br>
     <span class="fn">print</span>(all_quotes[<span class="num">0</span>])
   </div>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 phase4_dynamic.py</span><br>
+    <span class="vb-out">Quotes found: 10</span><br>
+    <span class="vb-out">{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, ...'}</span>
+  </div>
   <div class="expected-box">
-    <div class="eb-label">Expected Output — same selectors as Phase 3, now it works</div>
-    <code>Quotes found: 10<br>{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, ...'}</code>
+    <div class="eb-label">What to verify</div>
+    <code>Quotes found: 10</code> (first page only — Phase 5 handles all 10 pages). Same CSS selectors as Phase 3 — Playwright makes them work because JavaScript has now run.
   </div>
   <div class="callout tip">
     <strong>Debugging tip — use headed mode</strong>
@@ -2069,9 +2095,19 @@
     &nbsp;&nbsp;&nbsp;&nbsp;browser.<span class="fn">close</span>()<br><br>
     <span class="fn">print</span>(<span class="str">f"\nTotal quotes: {len(all_quotes)}"</span>)
   </div>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 phase5_paginated.py</span><br>
+    <span class="vb-out">Scraping page 1...</span><br>
+    <span class="vb-out">Scraping page 2...</span><br>
+    <span class="vb-out">... (continues through all 10 pages)</span><br>
+    <span class="vb-out">No more pages.</span><br>
+    <span class="vb-out"></span><br>
+    <span class="vb-out">Total quotes: 100</span>
+  </div>
   <div class="expected-box">
-    <div class="eb-label">Expected Output</div>
-    <code>Scraping page 1...<br>Scraping page 2...<br>... (10 pages total)<br>No more pages.<br>Total quotes: 100</code>
+    <div class="eb-label">What to verify</div>
+    <code>Total quotes: 100</code> (10 pages × 10 quotes). If you see fewer, pagination stopped early — check that <code>li.next &gt; a</code> is still the correct selector in the browser.
   </div>
 </div>
 
@@ -2091,7 +2127,10 @@
     <span class="kw">import</span> csv, time, requests<br><br>
     <span class="cm"># ── Phase 0: Legal Pre-Flight ────────────────────</span><br>
     robots = requests.<span class="fn">get</span>(<span class="str">"http://quotes.toscrape.com/robots.txt"</span>)<br>
-    <span class="fn">print</span>(<span class="str">"robots.txt:"</span>, robots.text <span class="kw">or</span> <span class="str">"(no restrictions)"</span>)<br><br>
+    <span class="kw">if</span> robots.status_code == <span class="num">404</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"robots.txt: not found (404) — no crawl restrictions\n"</span>)<br>
+    <span class="kw">else</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"robots.txt:"</span>, robots.text.<span class="fn">strip</span>() <span class="kw">or</span> <span class="str">"(empty — no restrictions)"</span>, <span class="str">"\n"</span>)<br><br>
     <span class="cm"># ── Phase 5: Dynamic Scraping ────────────────────</span><br>
     all_quotes = []<br><br>
     <span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
@@ -2121,11 +2160,11 @@
     <span class="fn">print</span>(<span class="str">f"Done — {len(all_quotes)} rows saved to quotes_dynamic.csv"</span>)
   </div>
   <div class="verify-block">
-    <span class="vb-label">Run &amp; verify</span><br>
+    <span class="vb-label">Run &amp; Verify</span><br>
     <span class="vb-cmd">python3 web_scraping_lab.py</span><br>
-    <span class="vb-out">robots.txt: (no restrictions)</span><br>
+    <span class="vb-out">robots.txt: not found (404) — no crawl restrictions</span><br>
     <span class="vb-out">Done — 100 rows saved to quotes_dynamic.csv</span><br><br>
-    <span class="vb-comment"># Inspect the CSV with pandas</span><br>
+    <span class="vb-comment"># Inspect the CSV with pandas to validate row count and structure</span><br>
     <span class="vb-cmd">python3 -c "import pandas as pd; df=pd.read_csv('quotes_dynamic.csv'); print(df.shape); print(df.head(3))"</span><br>
     <span class="vb-out">(100, 4)</span><br>
     <span class="vb-out">   page  quote                                     author           tags</span><br>
@@ -2134,82 +2173,6 @@
   <div class="expected-box">
     <div class="eb-label">CSV must have</div>
     <code>100 rows &nbsp;·&nbsp; 4 columns: page, quote, author, tags &nbsp;·&nbsp; UTF-8 encoded &nbsp;·&nbsp; header on row 1</code>
-  </div>
-</div>
-
-<!-- PHASE 7 -->
-<div class="phase-card" id="phase7">
-  <div class="phase-header">
-    <div class="phase-num ext">7</div>
-    <div>
-      <div class="phase-title">Phase 7 — Extension Challenges (Optional)</div>
-      <div class="phase-subtitle">Choose one or more to deepen your understanding</div>
-    </div>
-  </div>
-  <div class="tool-grid">
-    <div class="tool-item orange">
-      <strong>A — Scrapy Spider (Slides 15–16)</strong>
-      <span>Rewrite Phase 2 using a Scrapy spider. Add <code>DOWNLOAD_DELAY = 2</code> in settings.py. Run with <code>scrapy crawl quotes -o quotes_scrapy.csv</code>. Compare async speed with the sequential BeautifulSoup version.</span>
-    </div>
-    <div class="tool-item teal">
-      <strong>B — Headed Mode Debug (Slide 23)</strong>
-      <span>Change <code>headless=True</code> to <code>headless=False</code> in Phase 4. Watch Chromium navigate and render the page. Use this to verify selector behaviour visually. Switch back to <code>True</code> before submitting.</span>
-    </div>
-    <div class="tool-item green">
-      <strong>C — Add Error Handling</strong>
-      <span>Wrap each <code>.inner_text()</code> call in a safe helper: <code>def safe(el, sel): r=el.query_selector(sel); return r.inner_text() if r else "N/A"</code>. Prevents crashes on pages with missing elements.</span>
-    </div>
-    <div class="tool-item blue">
-      <strong>D — Analyse with Pandas</strong>
-      <span>Load the CSV into pandas. Find: (1) most-quoted author — <code>df["author"].value_counts()</code>; (2) most common tag — <code>df["tags"].str.split(", ").explode().value_counts()</code>; (3) average tags per quote.</span>
-    </div>
-    <div class="tool-item purple">
-      <strong>E — New site: books.toscrape.com</strong>
-      <span>Apply the full pipeline to <code>books.toscrape.com</code> (50 pages, 1000 books). Columns: title, price, rating, availability. Store as <code>books.csv</code>. This is a static site — BeautifulSoup is sufficient.</span>
-    </div>
-    <div class="tool-item red">
-      <strong>F — robots.txt Parser Function</strong>
-      <span>Write <code>def check_robots(base_url, path)</code> that fetches <code>/robots.txt</code>, parses all <code>Disallow</code> rules for <code>User-agent: *</code>, and returns <code>True</code> if scraping <code>path</code> is allowed.</span>
-    </div>
-  </div>
-</div>
-
-<!-- SUBMISSION CHECKLIST -->
-<div class="phase-card" id="submission" style="border:2px solid var(--srh-orange);">
-  <div class="phase-header">
-    <div class="phase-num" style="background:var(--green);">✓</div>
-    <div>
-      <div class="phase-title">Submission Checklist (Slide 30)</div>
-      <div class="phase-subtitle">Verify every item before handing in your work</div>
-    </div>
-  </div>
-  <ul class="checklist">
-    <li><code>quotes_dynamic.csv</code> exists in <code>~/web-scraping-lab/</code> and contains exactly <strong>100 rows</strong></li>
-    <li>CSV has 4 columns: <strong>page, quote, author, tags</strong> with a header row on line 1</li>
-    <li><code>check_robots.py</code> was run and confirmed no <code>Disallow</code> rules apply to the target path</li>
-    <li>A <code>time.sleep(1)</code> or equivalent delay is present between paginated requests</li>
-    <li>The main scraper uses <strong>Playwright</strong> (not just BeautifulSoup) to handle the JS-rendered <code>/js/</code> URL</li>
-    <li><code>phase3_broken.py</code> output confirms BeautifulSoup returned <strong>0 quotes</strong> on the <code>/js/</code> URL</li>
-    <li>All scripts run inside the activated <code>venv</code> virtual environment</li>
-    <li>(Extension E — if attempted) <code>books.csv</code> with 1000 rows and columns: title, price, rating, availability</li>
-  </ul>
-
-  <div class="compare-wrapper" style="margin-top:1.2rem">
-    <table class="lab-summary-table">
-      <thead>
-        <tr><th>Phase</th><th>Skill Practiced</th><th>Lecture Reference</th><th>File to Submit</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>0</td><td>robots.txt + ethical checklist</td><td><span class="slide-ref">Slides 26–29</span></td><td><code>check_robots.py</code></td></tr>
-        <tr><td>1</td><td>DOM inspection in browser DevTools</td><td><span class="slide-ref">Slides 10–12</span></td><td>—</td></tr>
-        <tr><td>2</td><td>requests + BeautifulSoup + pagination</td><td><span class="slide-ref">Slides 13–14</span></td><td><code>phase2_static.py</code></td></tr>
-        <tr><td>3</td><td>Prove static scraper fails on JS page</td><td><span class="slide-ref">Slides 18–19</span></td><td><code>phase3_broken.py</code></td></tr>
-        <tr><td>4</td><td>Playwright: headless browser + auto-wait</td><td><span class="slide-ref">Slides 22–23</span></td><td><code>phase4_dynamic.py</code></td></tr>
-        <tr><td>5</td><td>Dynamic pagination via button click</td><td><span class="slide-ref">Key Concepts</span></td><td><code>phase5_paginated.py</code></td></tr>
-        <tr><td><strong>6</strong></td><td><strong>Complete pipeline → CSV (assignment)</strong></td><td><span class="slide-ref">Slide 30</span></td><td><strong><code>web_scraping_lab.py</code> + <code>quotes_dynamic.csv</code></strong></td></tr>
-        <tr><td>7</td><td>Extension challenges (optional)</td><td><span class="slide-ref">Slides 15–16</span></td><td><code>books.csv</code> (if done)</td></tr>
-      </tbody>
-    </table>
   </div>
 </div>
 
