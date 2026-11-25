@@ -50,9 +50,13 @@ ok "requests, beautifulsoup4, playwright, pandas, scrapy, lxml installed"
 # ── 5. Playwright browser ─────────────────────────────────────
 banner "Installing Playwright Chromium browser"
 playwright install chromium
-sudo playwright install-deps chromium 2>/dev/null || \
-  warn "playwright install-deps skipped (may need manual: sudo playwright install-deps chromium)"
-ok "Chromium ready"
+ok "Playwright Chromium binary downloaded"
+
+banner "Installing Playwright system-level dependencies (requires sudo)"
+# Use the venv's full binary path so sudo can find it regardless of PATH
+sudo "$LAB/venv/bin/playwright" install-deps chromium 2>/dev/null || \
+  warn "playwright install-deps skipped — if check_setup.py reports a Chromium error, run:\n  source ~/web-scraping-lab/venv/bin/activate\n  sudo \$(which playwright) install-deps chromium"
+ok "System dependency step complete"
 
 # ── 6. Write lab files ────────────────────────────────────────
 banner "Writing lab Python files"
@@ -70,13 +74,22 @@ for lib in ["requests", "bs4", "playwright", "pandas", "scrapy"]:
         print(f"  {lib:<18} MISSING")
         missing.append(lib)
 
-from playwright.sync_api import sync_playwright
-with sync_playwright() as p:
-    b = p.chromium.launch(headless=True); b.close()
+try:
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        b = p.chromium.launch(headless=True)
+        b.close()
     print(f"  {'Playwright Chromium':<18} OK")
+except Exception as e:
+    print(f"  {'Playwright Chromium':<18} FAILED")
+    print(f"  → {e}")
+    print("  → Fix: sudo $(which playwright) install-deps chromium")
+    missing.append("Playwright Chromium")
 
 if missing:
-    print(f"\n[!] Re-run: pip install {' '.join(missing)}")
+    print(f"\n[!] Issues with: {', '.join(missing)}")
+    print("    Python libs:      pip install requests beautifulsoup4 playwright pandas scrapy lxml")
+    print("    Playwright deps:  sudo $(which playwright) install-deps chromium")
 else:
     print("\nAll checks passed — ready for the lab!")
 PYEOF
@@ -87,7 +100,12 @@ import requests
 target = "http://quotes.toscrape.com"
 r = requests.get(f"{target}/robots.txt")
 print(f"Status : {r.status_code}")
-print(r.text or "(empty — no crawl restrictions)")
+if r.status_code == 404:
+    print("(no robots.txt — site imposes no crawl restrictions)")
+elif r.text.strip():
+    print(r.text)
+else:
+    print("(empty robots.txt — no crawl restrictions)")
 PYEOF
 
 # phase2_static.py ─────────────────────────────────────────────
@@ -128,8 +146,9 @@ response = requests.get("http://quotes.toscrape.com/js/")
 soup     = BeautifulSoup(response.text, "html.parser")
 quotes   = soup.find_all("div", class_="quote")
 print(f"Quotes found: {len(quotes)}")   # expected: 0  — proves JS problem
-print("\n--- HTML snippet (shows empty div) ---")
-print(response.text[2800:3200])
+
+print("\n--- Quotes container (JavaScript fills this after page load) ---")
+print(soup.find(id="quotes"))  # prints <div id="quotes"></div> — empty until JS runs
 PYEOF
 
 # phase4_dynamic.py ────────────────────────────────────────────
@@ -201,7 +220,10 @@ import csv, time, requests
 
 # Phase 0: legal pre-flight
 robots = requests.get("http://quotes.toscrape.com/robots.txt")
-print("robots.txt:", robots.text or "(no restrictions)\n")
+if robots.status_code == 404:
+    print("robots.txt: not found (404) — no crawl restrictions\n")
+else:
+    print("robots.txt:", robots.text.strip() or "(empty — no restrictions)", "\n")
 
 # Phase 5: dynamic scraping with Playwright
 all_quotes = []

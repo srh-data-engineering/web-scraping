@@ -489,8 +489,6 @@
     <a href="#phase4">↳ Phase 4 — Playwright</a>
     <a href="#phase5">↳ Phase 5 — Pagination</a>
     <a href="#phase6">↳ Phase 6 — Save CSV</a>
-    <a href="#phase7">↳ Phase 7 — Extensions</a>
-    <a href="#submission">↳ Submission Checklist</a>
   </div>
 </nav>
 
@@ -1585,13 +1583,40 @@
     <span class="vb-cmd">bash web_scraping_setup.sh</span><br><br>
     <span class="vb-comment"># Step 3 — activate the environment (repeat this once each time you open a terminal)</span><br>
     <span class="vb-cmd">source ~/web-scraping-lab/venv/bin/activate</span><br>
-    <span class="vb-out">(venv) student@ubuntu:~$</span>
+    <span class="vb-out">(venv) student@ubuntu:~/web-scraping$</span><br><br>
+    <span class="vb-comment"># Step 4 — move into the lab folder where the setup script wrote all Python files</span><br>
+    <span class="vb-cmd">cd ~/web-scraping-lab/</span><br>
+    <span class="vb-out">(venv) student@ubuntu:~/web-scraping-lab$</span>
   </div>
 
   <div style="margin-top:1rem;padding:.9rem 1.1rem;background:#fff;border-radius:8px;border:1px solid #b7dfca">
-    <p style="font-size:.87rem;color:#333;margin:0"><strong>After Step 2 completes you will see:</strong><br>
+    <p style="font-size:.87rem;color:#333;margin:0"><strong>After Step 2 completes</strong>, the script automatically verifies the installation. You should see:<br>
     <code style="font-size:.83rem">All checks passed — ready for the lab!</code><br>
-    and a summary box showing the commands to run each phase.</p>
+    Then follow Steps 3–4 above to activate the venv and enter the lab folder. If the script reports <strong>Playwright Chromium FAILED</strong>, see the fix in <strong>Prerequisite Step 4</strong> below.</p>
+  </div>
+</div>
+
+<!-- LAB.SH GUIDE -->
+<div style="background:#eef2ff;border:2px solid #818cf8;border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.5rem;">
+  <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem">
+    <span style="background:#818cf8;color:#fff;border-radius:6px;padding:.2rem .75rem;font-size:.78rem;font-weight:700">RUNNING THE LAB</span>
+    <span style="font-size:1.1rem;font-weight:700;color:var(--text)">Use <code>lab.sh</code> to run any phase</span>
+  </div>
+  <p style="font-size:.88rem;color:#333;margin-bottom:.9rem">The setup script created <code>~/web-scraping-lab/lab.sh</code> — a helper that activates the virtual environment and runs your script in a single command. Use it whenever you open a fresh terminal and don't want to manually source the venv first.</p>
+  <div class="verify-block" style="margin:0">
+    <span class="vb-label">Usage — from ~/web-scraping-lab/</span><br>
+    <span class="vb-comment"># Run any phase script (activates venv automatically)</span><br>
+    <span class="vb-cmd">bash lab.sh &lt;script.py&gt;</span><br><br>
+    <span class="vb-comment"># Phase-by-phase examples</span><br>
+    <span class="vb-cmd">bash lab.sh check_robots.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase2_static.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase3_broken.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase4_dynamic.py</span><br>
+    <span class="vb-cmd">bash lab.sh phase5_paginated.py</span><br>
+    <span class="vb-cmd">bash lab.sh web_scraping_lab.py</span>
+  </div>
+  <div style="margin-top:.9rem;padding:.8rem 1rem;background:#fff;border-radius:8px;border:1px solid #c7d2fe;font-size:.85rem;color:#333">
+    <strong>Tip:</strong> If you already activated the venv in this terminal session, you can run scripts directly: <code>python3 phase2_static.py</code>. <code>lab.sh</code> is just a shortcut so you never get a <em>"No module named…"</em> error from forgetting to activate.
   </div>
 </div>
 
@@ -1638,6 +1663,10 @@
       <div class="phase-subtitle">Keep all lab dependencies isolated — do not install globally</div>
     </div>
   </div>
+  <div class="callout tip" style="margin-bottom:.8rem">
+    <strong>Used the setup script?</strong>
+    <p>Steps 2 and 3 were already done by the script. Skip ahead to <strong>Step 4 — Verify All Installations</strong>.</p>
+  </div>
   <div class="verify-block">
     <span class="vb-label">Terminal — Project Setup</span><br>
     <span class="vb-comment"># Create a dedicated folder for this lab</span><br>
@@ -1664,14 +1693,19 @@
       <div class="phase-subtitle">requests, BeautifulSoup4, Playwright, pandas, Scrapy</div>
     </div>
   </div>
+  <div class="callout tip" style="margin-bottom:.8rem">
+    <strong>Used the setup script?</strong>
+    <p>All libraries and browser binaries were installed by the script. Skip to <strong>Step 4 — Verify All Installations</strong>.</p>
+  </div>
   <div class="verify-block">
     <span class="vb-label">Terminal — pip installs (venv must be active)</span><br>
     <span class="vb-comment"># Install all required libraries in one command</span><br>
     <span class="vb-cmd">pip install requests beautifulsoup4 playwright pandas scrapy lxml</span><br><br>
-    <span class="vb-comment"># Install Playwright's Chromium browser binary</span><br>
+    <span class="vb-comment"># Download the Playwright Chromium browser binary</span><br>
     <span class="vb-cmd">playwright install chromium</span><br><br>
-    <span class="vb-comment"># On Ubuntu/Debian: install system-level browser dependencies</span><br>
-    <span class="vb-cmd">sudo playwright install-deps chromium</span>
+    <span class="vb-comment"># Install system-level OS dependencies for Chromium (Ubuntu/Debian)</span><br>
+    <span class="vb-comment"># Use $(which playwright) so sudo uses the venv's binary, not the system one</span><br>
+    <span class="vb-cmd">sudo $(which playwright) install-deps chromium</span>
   </div>
   <div class="prereq-grid" style="margin-top:1rem">
     <div class="prereq-card pc-green">
@@ -1715,41 +1749,73 @@
       <div class="phase-subtitle">Run this script — every line must print OK before starting the lab</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.6rem">Create <code>~/web-scraping-lab/check_setup.py</code> and paste the code below:</p>
+  <div class="callout info" style="margin-bottom:.8rem">
+    <strong>Setup script already ran?</strong>
+    <p>The script created <code>check_setup.py</code> in <code>~/web-scraping-lab/</code> and ran it at the end. If you saw <em>All checks passed</em>, you are done. If you saw <em>Playwright Chromium FAILED</em> (or a stack trace instead of that message), apply the fix in the callout below.</p>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.6rem">With your venv active and working directory set to <code>~/web-scraping-lab/</code>, run:</p>
   <div class="verify-block">
-    <span class="vb-label">check_setup.py</span><br>
-    <span style="color:#cba6f7">import</span> sys<br>
-    <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">f"Python: {sys.version}"</span>)<br><br>
-    <span style="color:#cba6f7">try</span>:<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> requests;         <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"requests        OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> bs4;             <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"beautifulsoup4  OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> playwright;      <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"playwright      OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> pandas;          <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"pandas          OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> scrapy;          <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"scrapy          OK"</span>)<br>
-    <span style="color:#cba6f7">except</span> <span style="color:#f9e2af">ImportError</span> <span style="color:#cba6f7">as</span> e:<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">f"MISSING: {e}"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"Re-run: pip install requests beautifulsoup4 playwright pandas scrapy lxml"</span>)<br><br>
-    <span style="color:#6c7086;font-style:italic"># Test that Playwright can launch Chromium</span><br>
-    <span style="color:#cba6f7">from</span> playwright.sync_api <span style="color:#cba6f7">import</span> sync_playwright<br>
-    <span style="color:#cba6f7">with</span> sync_playwright() <span style="color:#cba6f7">as</span> p:<br>
-    &nbsp;&nbsp;b = p.chromium.launch(headless=<span style="color:#cba6f7">True</span>)<br>
-    &nbsp;&nbsp;b.close()<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"Playwright Chromium  OK"</span>)
+    <span class="vb-label">Terminal — run the check</span><br>
+    <span class="vb-cmd">python3 check_setup.py</span>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin:.8rem 0 .4rem">The file contains this code (shown for reference — it was written by the setup script):</p>
+  <div class="code-block">
+    <span class="cb-label">check_setup.py</span><br>
+    <span class="kw">import</span> sys<br>
+    <span class="fn">print</span>(<span class="str">f"Python: {sys.version}\n"</span>)<br>
+    missing = []<br>
+    <span class="kw">for</span> lib <span class="kw">in</span> [<span class="str">"requests"</span>, <span class="str">"bs4"</span>, <span class="str">"playwright"</span>, <span class="str">"pandas"</span>, <span class="str">"scrapy"</span>]:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">try</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__import__(lib)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {lib:&lt;18} OK"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">except</span> <span class="cls">ImportError</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {lib:&lt;18} MISSING"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;missing.<span class="fn">append</span>(lib)<br><br>
+    <span class="kw">try</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b = p.chromium.<span class="fn">launch</span>(headless=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b.<span class="fn">close</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {'Playwright Chromium':&lt;18} OK"</span>)<br>
+    <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {'Playwright Chromium':&lt;18} FAILED"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  → {e}"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"  → Fix: sudo $(which playwright) install-deps chromium"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;missing.<span class="fn">append</span>(<span class="str">"Playwright Chromium"</span>)<br><br>
+    <span class="kw">if</span> missing:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"\n[!] Issues with: {', '.join(missing)}"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"    Python libs:      pip install requests beautifulsoup4 playwright pandas scrapy lxml"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"    Playwright deps:  sudo $(which playwright) install-deps chromium"</span>)<br>
+    <span class="kw">else</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"\nAll checks passed — ready for the lab!"</span>)
   </div>
   <div class="verify-block" style="margin-top:.5rem">
-    <span class="vb-label">Expected Output — all lines must show OK</span><br>
+    <span class="vb-label">Expected output — all lines must show OK</span><br>
     <span class="vb-cmd">python3 check_setup.py</span><br>
     <span class="vb-out">Python: 3.10.12 ...</span><br>
-    <span class="vb-out">requests        OK</span><br>
-    <span class="vb-out">beautifulsoup4  OK</span><br>
-    <span class="vb-out">playwright      OK</span><br>
-    <span class="vb-out">pandas          OK</span><br>
-    <span class="vb-out">scrapy          OK</span><br>
-    <span class="vb-out">Playwright Chromium  OK</span>
+    <span class="vb-out">  requests           OK</span><br>
+    <span class="vb-out">  bs4                OK</span><br>
+    <span class="vb-out">  playwright         OK</span><br>
+    <span class="vb-out">  pandas             OK</span><br>
+    <span class="vb-out">  scrapy             OK</span><br>
+    <span class="vb-out">  Playwright Chromium  OK</span><br>
+    <span class="vb-out"></span><br>
+    <span class="vb-out">All checks passed — ready for the lab!</span>
+  </div>
+  <div class="callout warn" style="margin-top:.8rem">
+    <strong>Playwright Chromium shows FAILED instead of OK?</strong>
+    <p>The Python package installed fine, but Chromium needs extra OS-level libraries. With your venv active, run this one command and then re-run the check:</p>
+    <div class="verify-block" style="margin:.5rem 0 0">
+      <span class="vb-label">Fix</span><br>
+      <span class="vb-comment"># $(which playwright) resolves to the venv binary so sudo can find it</span><br>
+      <span class="vb-cmd">sudo $(which playwright) install-deps chromium</span><br>
+      <span class="vb-cmd">python3 check_setup.py</span>
+    </div>
+    <p style="margin-top:.5rem">If <code>which playwright</code> returns nothing (venv not active), activate first: <code>source ~/web-scraping-lab/venv/bin/activate</code></p>
   </div>
   <div class="callout tip" style="margin-top:.6rem">
     <strong>All green? You are ready to start the lab.</strong>
-    <p>If any line shows <code>MISSING</code>, check that your venv is active (<code>source venv/bin/activate</code>) and re-run the pip install command from Step 3.</p>
+    <p>If any Python lib shows <code>MISSING</code>, check that your venv is active and re-run the pip install from Step 3. For Playwright Chromium failures, use the fix above.</p>
   </div>
 </div>
 
@@ -1813,27 +1879,30 @@
       <div class="phase-subtitle">Slides 26–29 · Always run this before writing any scraping code</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Slides 26–29 are clear: check <code>robots.txt</code> and the Terms of Service before scraping any site. Create <code>check_robots.py</code>:</p>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Slides 26–29 are clear: check <code>robots.txt</code> and the Terms of Service before scraping any site. The file <code>check_robots.py</code> was written to <code>~/web-scraping-lab/</code> by the setup script:</p>
   <div class="code-block">
     <span class="cb-label">check_robots.py</span><br>
     <span class="kw">import</span> requests<br><br>
     target = <span class="str">"http://quotes.toscrape.com"</span><br>
-    robots = requests.<span class="fn">get</span>(<span class="str">f"{target}/robots.txt"</span>)<br>
-    <span class="fn">print</span>(<span class="str">f"Status : {robots.status_code}"</span>)<br>
-    <span class="fn">print</span>(robots.text <span class="kw">or</span> <span class="str">"(empty — no crawl restrictions)"</span>)
+    r = requests.<span class="fn">get</span>(<span class="str">f"{target}/robots.txt"</span>)<br>
+    <span class="fn">print</span>(<span class="str">f"Status : {r.status_code}"</span>)<br>
+    <span class="kw">if</span> r.status_code == <span class="num">404</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"(no robots.txt — site imposes no crawl restrictions)"</span>)<br>
+    <span class="kw">elif</span> r.text.<span class="fn">strip</span>():<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(r.text)<br>
+    <span class="kw">else</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"(empty robots.txt — no crawl restrictions)"</span>)
   </div>
-  <div class="expected-box">
-    <div class="eb-label">Expected Output</div>
-    <code>Status : 200<br>(empty — no crawl restrictions)</code>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 check_robots.py</span><br>
+    <span class="vb-out">Status : 404</span><br>
+    <span class="vb-out">(no robots.txt — site imposes no crawl restrictions)</span>
   </div>
-  <p style="font-size:.88rem;color:#444;margin:.9rem 0 .5rem"><strong>Answer these questions before every real project:</strong></p>
-  <ul class="checklist">
-    <li>Does <code>robots.txt</code> allow access to the target path?</li>
-    <li>Does the Terms of Service prohibit automated access?</li>
-    <li>Is there a public API that makes scraping unnecessary?</li>
-    <li>Will the data contain personal information? (GDPR scope?)</li>
-    <li>Have you added a rate-limiting delay between requests (≥ 1–2 s)?</li>
-  </ul>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>404 on robots.txt is a green light</strong>
+    <p>A 404 means the site published no robots.txt — there are no crawl restrictions. A 200 with <code>Disallow:</code> rules would need investigation. For <code>quotes.toscrape.com</code> a 404 is expected; the site was built for scraping practice.</p>
+  </div>
 </div>
 
 <!-- PHASE 1 -->
@@ -1842,16 +1911,19 @@
     <div class="phase-num">1</div>
     <div>
       <div class="phase-title">Phase 1 — Inspect the DOM in Your Browser</div>
-      <div class="phase-subtitle">Slides 10–12 · Understand the page structure before writing code</div>
+      <div class="phase-subtitle">Slides 10–12 · Use Chrome on your host Mac — the VM has no desktop</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Open <strong>Firefox</strong> inside your VM and navigate to <code>http://quotes.toscrape.com</code>.</p>
+  <div class="callout info" style="margin-bottom:.8rem">
+    <strong>Use Chrome on your host Mac, not in the VM</strong>
+    <p>Your Ubuntu VM runs headless (no graphical desktop). Open Chrome on your Mac and navigate to the URLs below — both sites are reachable from your host machine.</p>
+  </div>
   <ol class="phase-steps">
-    <li>Right-click a quote → <strong>Inspect Element</strong> (or press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">F12</kbd>). Find the container wrapping one complete quote block.</li>
-    <li>Expand the element tree and identify the child tags for: quote text, author name, and each tag link.</li>
-    <li>Write down the CSS selector for each — you will need them in Phase 2.</li>
-    <li>Right-click → <strong>View Page Source</strong> (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+U</kbd>). Search (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+F</kbd>) for the first quote text. It <strong>is</strong> in the source → confirms static site.</li>
-    <li>Now open <code>http://quotes.toscrape.com<strong>/js/</strong></code> → View Page Source → search for the same quote. It is <strong>NOT</strong> there → confirms dynamic site.</li>
+    <li>On your Mac, open Chrome and navigate to <code>http://quotes.toscrape.com</code>.</li>
+    <li>Right-click any quote text → <strong>Inspect</strong> (or press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">F12</kbd>). Find the <code>&lt;div class="quote"&gt;</code> container wrapping one complete quote block.</li>
+    <li>Expand the element tree and identify the child tags for: quote text, author name, and each tag link. Note the CSS selector for each — you need them in Phase 2.</li>
+    <li>Press <kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+U</kbd> (Cmd+U on Mac) to open View Page Source. Search (<kbd style="background:#eee;border:1px solid #ccc;padding:.1rem .4rem;border-radius:3px;font-size:.82rem">Ctrl+F</kbd>) for the first quote text. It <strong>is</strong> in the source → confirms static site.</li>
+    <li>Now navigate to <code>http://quotes.toscrape.com<strong>/js/</strong></code> → View Page Source → search for the same quote text. It is <strong>NOT</strong> there → confirms the content is rendered by JavaScript after page load.</li>
   </ol>
   <div class="compare-wrapper" style="margin-top:.8rem">
     <table class="compare">
@@ -1864,6 +1936,10 @@
         <tr><td>Next page button</td><td><code>&lt;li&gt; &gt; &lt;a&gt;</code></td><td><code class="win">li.next &gt; a</code></td></tr>
       </tbody>
     </table>
+  </div>
+  <div class="callout tip" style="margin-top:.6rem">
+    <strong>No script to run for Phase 1</strong>
+    <p>This is a browser inspection exercise. The CSS selectors you identify here are the same ones already used in <code>phase2_static.py</code>. Continue to Phase 2 once you can see that the static URL has quote text in its source but the <code>/js/</code> URL does not.</p>
   </div>
 </div>
 
@@ -1902,7 +1978,7 @@
     <span class="fn">print</span>(all_quotes[<span class="num">0</span>])
   </div>
   <div class="verify-block">
-    <span class="vb-label">Run it</span><br>
+    <span class="vb-label">Run &amp; Verify</span><br>
     <span class="vb-cmd">python3 phase2_static.py</span><br>
     <span class="vb-out">Collected 100 quotes</span><br>
     <span class="vb-out">{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, deep-thoughts, ...'}</span>
@@ -1922,21 +1998,25 @@
       <div class="phase-subtitle">Slides 18–19 · The core motivation for browser automation</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Run the identical BeautifulSoup code against the <strong>JavaScript-rendered</strong> <code>/js/</code> URL. Create <code>phase3_broken.py</code>:</p>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.8rem">Run the identical BeautifulSoup code against the <strong>JavaScript-rendered</strong> <code>/js/</code> URL. The file <code>phase3_broken.py</code> was written by the setup script:</p>
   <div class="code-block">
     <span class="cb-label">phase3_broken.py — BeautifulSoup on a JS page</span><br>
     <span class="kw">import</span> requests<br>
     <span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup<br><br>
     response = requests.<span class="fn">get</span>(<span class="str">"http://quotes.toscrape.com/js/"</span>)<br>
-    soup     = BeautifulSoup(response.text, <span class="str">"html.parser"</span>)<br><br>
+    soup     = <span class="cls">BeautifulSoup</span>(response.text, <span class="str">"html.parser"</span>)<br><br>
     quotes = soup.<span class="fn">find_all</span>(<span class="str">"div"</span>, class_=<span class="str">"quote"</span>)<br>
-    <span class="fn">print</span>(<span class="str">f"Quotes found: {len(quotes)}"</span>)<br>
-    <span class="fn">print</span>(<span class="str">"--- Raw HTML snippet (shows empty div) ---"</span>)<br>
-    <span class="fn">print</span>(response.text[<span class="num">3000</span>:<span class="num">3400</span>])
+    <span class="fn">print</span>(<span class="str">f"Quotes found: {len(quotes)}"</span>)<br><br>
+    <span class="fn">print</span>(<span class="str">"\n--- Quotes container (JavaScript fills this after page load) ---"</span>)<br>
+    <span class="fn">print</span>(soup.<span class="fn">find</span>(id=<span class="str">"quotes"</span>))  <span class="cm"># prints the empty div — JS has not run yet</span>
   </div>
-  <div class="expected-box">
-    <div class="eb-label">Expected Output — this is the proof</div>
-    <code>Quotes found: 0<br>--- Raw HTML snippet ---<br>&lt;div id="quotes"&gt;&lt;/div&gt;   &lt;!-- JavaScript fills this after load --&gt;</code>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 phase3_broken.py</span><br>
+    <span class="vb-out">Quotes found: 0</span><br>
+    <span class="vb-out"></span><br>
+    <span class="vb-out">--- Quotes container (JavaScript fills this after page load) ---</span><br>
+    <span class="vb-out">&lt;div id="quotes"&gt;&lt;/div&gt;</span>
   </div>
   <div class="callout warn" style="margin-top:.8rem">
     <strong>Why zero?</strong>
@@ -1975,9 +2055,15 @@
     <span class="fn">print</span>(<span class="str">f"Quotes found: {len(all_quotes)}"</span>)  <span class="cm"># 10 — first page only</span><br>
     <span class="fn">print</span>(all_quotes[<span class="num">0</span>])
   </div>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 phase4_dynamic.py</span><br>
+    <span class="vb-out">Quotes found: 10</span><br>
+    <span class="vb-out">{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, ...'}</span>
+  </div>
   <div class="expected-box">
-    <div class="eb-label">Expected Output — same selectors as Phase 3, now it works</div>
-    <code>Quotes found: 10<br>{'quote': '"The world as we have created it...', 'author': 'Albert Einstein', 'tags': 'change, ...'}</code>
+    <div class="eb-label">What to verify</div>
+    <code>Quotes found: 10</code> (first page only — Phase 5 handles all 10 pages). Same CSS selectors as Phase 3 — Playwright makes them work because JavaScript has now run.
   </div>
   <div class="callout tip">
     <strong>Debugging tip — use headed mode</strong>
@@ -2025,9 +2111,19 @@
     &nbsp;&nbsp;&nbsp;&nbsp;browser.<span class="fn">close</span>()<br><br>
     <span class="fn">print</span>(<span class="str">f"\nTotal quotes: {len(all_quotes)}"</span>)
   </div>
+  <div class="verify-block">
+    <span class="vb-label">Run &amp; Verify</span><br>
+    <span class="vb-cmd">python3 phase5_paginated.py</span><br>
+    <span class="vb-out">Scraping page 1...</span><br>
+    <span class="vb-out">Scraping page 2...</span><br>
+    <span class="vb-out">... (continues through all 10 pages)</span><br>
+    <span class="vb-out">No more pages.</span><br>
+    <span class="vb-out"></span><br>
+    <span class="vb-out">Total quotes: 100</span>
+  </div>
   <div class="expected-box">
-    <div class="eb-label">Expected Output</div>
-    <code>Scraping page 1...<br>Scraping page 2...<br>... (10 pages total)<br>No more pages.<br>Total quotes: 100</code>
+    <div class="eb-label">What to verify</div>
+    <code>Total quotes: 100</code> (10 pages × 10 quotes). If you see fewer, pagination stopped early — check that <code>li.next &gt; a</code> is still the correct selector in the browser.
   </div>
 </div>
 
@@ -2047,7 +2143,10 @@
     <span class="kw">import</span> csv, time, requests<br><br>
     <span class="cm"># ── Phase 0: Legal Pre-Flight ────────────────────</span><br>
     robots = requests.<span class="fn">get</span>(<span class="str">"http://quotes.toscrape.com/robots.txt"</span>)<br>
-    <span class="fn">print</span>(<span class="str">"robots.txt:"</span>, robots.text <span class="kw">or</span> <span class="str">"(no restrictions)"</span>)<br><br>
+    <span class="kw">if</span> robots.status_code == <span class="num">404</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"robots.txt: not found (404) — no crawl restrictions\n"</span>)<br>
+    <span class="kw">else</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"robots.txt:"</span>, robots.text.<span class="fn">strip</span>() <span class="kw">or</span> <span class="str">"(empty — no restrictions)"</span>, <span class="str">"\n"</span>)<br><br>
     <span class="cm"># ── Phase 5: Dynamic Scraping ────────────────────</span><br>
     all_quotes = []<br><br>
     <span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
@@ -2077,11 +2176,11 @@
     <span class="fn">print</span>(<span class="str">f"Done — {len(all_quotes)} rows saved to quotes_dynamic.csv"</span>)
   </div>
   <div class="verify-block">
-    <span class="vb-label">Run &amp; verify</span><br>
+    <span class="vb-label">Run &amp; Verify</span><br>
     <span class="vb-cmd">python3 web_scraping_lab.py</span><br>
-    <span class="vb-out">robots.txt: (no restrictions)</span><br>
+    <span class="vb-out">robots.txt: not found (404) — no crawl restrictions</span><br>
     <span class="vb-out">Done — 100 rows saved to quotes_dynamic.csv</span><br><br>
-    <span class="vb-comment"># Inspect the CSV with pandas</span><br>
+    <span class="vb-comment"># Inspect the CSV with pandas to validate row count and structure</span><br>
     <span class="vb-cmd">python3 -c "import pandas as pd; df=pd.read_csv('quotes_dynamic.csv'); print(df.shape); print(df.head(3))"</span><br>
     <span class="vb-out">(100, 4)</span><br>
     <span class="vb-out">   page  quote                                     author           tags</span><br>
@@ -2093,84 +2192,9 @@
   </div>
 </div>
 
-<!-- PHASE 7 -->
-<div class="phase-card" id="phase7">
-  <div class="phase-header">
-    <div class="phase-num ext">7</div>
-    <div>
-      <div class="phase-title">Phase 7 — Extension Challenges (Optional)</div>
-      <div class="phase-subtitle">Choose one or more to deepen your understanding</div>
-    </div>
-  </div>
-  <div class="tool-grid">
-    <div class="tool-item orange">
-      <strong>A — Scrapy Spider (Slides 15–16)</strong>
-      <span>Rewrite Phase 2 using a Scrapy spider. Add <code>DOWNLOAD_DELAY = 2</code> in settings.py. Run with <code>scrapy crawl quotes -o quotes_scrapy.csv</code>. Compare async speed with the sequential BeautifulSoup version.</span>
-    </div>
-    <div class="tool-item teal">
-      <strong>B — Headed Mode Debug (Slide 23)</strong>
-      <span>Change <code>headless=True</code> to <code>headless=False</code> in Phase 4. Watch Chromium navigate and render the page. Use this to verify selector behaviour visually. Switch back to <code>True</code> before submitting.</span>
-    </div>
-    <div class="tool-item green">
-      <strong>C — Add Error Handling</strong>
-      <span>Wrap each <code>.inner_text()</code> call in a safe helper: <code>def safe(el, sel): r=el.query_selector(sel); return r.inner_text() if r else "N/A"</code>. Prevents crashes on pages with missing elements.</span>
-    </div>
-    <div class="tool-item blue">
-      <strong>D — Analyse with Pandas</strong>
-      <span>Load the CSV into pandas. Find: (1) most-quoted author — <code>df["author"].value_counts()</code>; (2) most common tag — <code>df["tags"].str.split(", ").explode().value_counts()</code>; (3) average tags per quote.</span>
-    </div>
-    <div class="tool-item purple">
-      <strong>E — New site: books.toscrape.com</strong>
-      <span>Apply the full pipeline to <code>books.toscrape.com</code> (50 pages, 1000 books). Columns: title, price, rating, availability. Store as <code>books.csv</code>. This is a static site — BeautifulSoup is sufficient.</span>
-    </div>
-    <div class="tool-item red">
-      <strong>F — robots.txt Parser Function</strong>
-      <span>Write <code>def check_robots(base_url, path)</code> that fetches <code>/robots.txt</code>, parses all <code>Disallow</code> rules for <code>User-agent: *</code>, and returns <code>True</code> if scraping <code>path</code> is allowed.</span>
-    </div>
-  </div>
-</div>
-
-<!-- SUBMISSION CHECKLIST -->
-<div class="phase-card" id="submission" style="border:2px solid var(--srh-orange);">
-  <div class="phase-header">
-    <div class="phase-num" style="background:var(--green);">✓</div>
-    <div>
-      <div class="phase-title">Submission Checklist (Slide 30)</div>
-      <div class="phase-subtitle">Verify every item before handing in your work</div>
-    </div>
-  </div>
-  <ul class="checklist">
-    <li><code>quotes_dynamic.csv</code> exists in <code>~/web-scraping-lab/</code> and contains exactly <strong>100 rows</strong></li>
-    <li>CSV has 4 columns: <strong>page, quote, author, tags</strong> with a header row on line 1</li>
-    <li><code>check_robots.py</code> was run and confirmed no <code>Disallow</code> rules apply to the target path</li>
-    <li>A <code>time.sleep(1)</code> or equivalent delay is present between paginated requests</li>
-    <li>The main scraper uses <strong>Playwright</strong> (not just BeautifulSoup) to handle the JS-rendered <code>/js/</code> URL</li>
-    <li><code>phase3_broken.py</code> output confirms BeautifulSoup returned <strong>0 quotes</strong> on the <code>/js/</code> URL</li>
-    <li>All scripts run inside the activated <code>venv</code> virtual environment</li>
-    <li>(Extension E — if attempted) <code>books.csv</code> with 1000 rows and columns: title, price, rating, availability</li>
-  </ul>
-
-  <div class="compare-wrapper" style="margin-top:1.2rem">
-    <table class="lab-summary-table">
-      <thead>
-        <tr><th>Phase</th><th>Skill Practiced</th><th>Lecture Reference</th><th>File to Submit</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>0</td><td>robots.txt + ethical checklist</td><td><span class="slide-ref">Slides 26–29</span></td><td><code>check_robots.py</code></td></tr>
-        <tr><td>1</td><td>DOM inspection in browser DevTools</td><td><span class="slide-ref">Slides 10–12</span></td><td>—</td></tr>
-        <tr><td>2</td><td>requests + BeautifulSoup + pagination</td><td><span class="slide-ref">Slides 13–14</span></td><td><code>phase2_static.py</code></td></tr>
-        <tr><td>3</td><td>Prove static scraper fails on JS page</td><td><span class="slide-ref">Slides 18–19</span></td><td><code>phase3_broken.py</code></td></tr>
-        <tr><td>4</td><td>Playwright: headless browser + auto-wait</td><td><span class="slide-ref">Slides 22–23</span></td><td><code>phase4_dynamic.py</code></td></tr>
-        <tr><td>5</td><td>Dynamic pagination via button click</td><td><span class="slide-ref">Key Concepts</span></td><td><code>phase5_paginated.py</code></td></tr>
-        <tr><td><strong>6</strong></td><td><strong>Complete pipeline → CSV (assignment)</strong></td><td><span class="slide-ref">Slide 30</span></td><td><strong><code>web_scraping_lab.py</code> + <code>quotes_dynamic.csv</code></strong></td></tr>
-        <tr><td>7</td><td>Extension challenges (optional)</td><td><span class="slide-ref">Slides 15–16</span></td><td><code>books.csv</code> (if done)</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
 </main>
 </div>
+<footer>
   SRH Hochschule Heidelberg &nbsp;·&nbsp; Data Engineering 1 &nbsp;·&nbsp; Web Data — From Web Services to Web Scraping &nbsp;·&nbsp; Prof. Dr.-Ing. Binh Vu
 </footer>
 
