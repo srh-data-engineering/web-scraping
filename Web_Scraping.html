@@ -1585,13 +1585,16 @@
     <span class="vb-cmd">bash web_scraping_setup.sh</span><br><br>
     <span class="vb-comment"># Step 3 — activate the environment (repeat this once each time you open a terminal)</span><br>
     <span class="vb-cmd">source ~/web-scraping-lab/venv/bin/activate</span><br>
-    <span class="vb-out">(venv) student@ubuntu:~$</span>
+    <span class="vb-out">(venv) student@ubuntu:~/web-scraping$</span><br><br>
+    <span class="vb-comment"># Step 4 — move into the lab folder where the setup script wrote all Python files</span><br>
+    <span class="vb-cmd">cd ~/web-scraping-lab/</span><br>
+    <span class="vb-out">(venv) student@ubuntu:~/web-scraping-lab$</span>
   </div>
 
   <div style="margin-top:1rem;padding:.9rem 1.1rem;background:#fff;border-radius:8px;border:1px solid #b7dfca">
-    <p style="font-size:.87rem;color:#333;margin:0"><strong>After Step 2 completes you will see:</strong><br>
+    <p style="font-size:.87rem;color:#333;margin:0"><strong>After Step 2 completes</strong>, the script automatically verifies the installation. You should see:<br>
     <code style="font-size:.83rem">All checks passed — ready for the lab!</code><br>
-    and a summary box showing the commands to run each phase.</p>
+    Then follow Steps 3–4 above to activate the venv and enter the lab folder. If the script reports <strong>Playwright Chromium FAILED</strong>, see the fix in <strong>Prerequisite Step 4</strong> below.</p>
   </div>
 </div>
 
@@ -1638,6 +1641,10 @@
       <div class="phase-subtitle">Keep all lab dependencies isolated — do not install globally</div>
     </div>
   </div>
+  <div class="callout tip" style="margin-bottom:.8rem">
+    <strong>Used the setup script?</strong>
+    <p>Steps 2 and 3 were already done by the script. Skip ahead to <strong>Step 4 — Verify All Installations</strong>.</p>
+  </div>
   <div class="verify-block">
     <span class="vb-label">Terminal — Project Setup</span><br>
     <span class="vb-comment"># Create a dedicated folder for this lab</span><br>
@@ -1664,14 +1671,19 @@
       <div class="phase-subtitle">requests, BeautifulSoup4, Playwright, pandas, Scrapy</div>
     </div>
   </div>
+  <div class="callout tip" style="margin-bottom:.8rem">
+    <strong>Used the setup script?</strong>
+    <p>All libraries and browser binaries were installed by the script. Skip to <strong>Step 4 — Verify All Installations</strong>.</p>
+  </div>
   <div class="verify-block">
     <span class="vb-label">Terminal — pip installs (venv must be active)</span><br>
     <span class="vb-comment"># Install all required libraries in one command</span><br>
     <span class="vb-cmd">pip install requests beautifulsoup4 playwright pandas scrapy lxml</span><br><br>
-    <span class="vb-comment"># Install Playwright's Chromium browser binary</span><br>
+    <span class="vb-comment"># Download the Playwright Chromium browser binary</span><br>
     <span class="vb-cmd">playwright install chromium</span><br><br>
-    <span class="vb-comment"># On Ubuntu/Debian: install system-level browser dependencies</span><br>
-    <span class="vb-cmd">sudo playwright install-deps chromium</span>
+    <span class="vb-comment"># Install system-level OS dependencies for Chromium (Ubuntu/Debian)</span><br>
+    <span class="vb-comment"># Use $(which playwright) so sudo uses the venv's binary, not the system one</span><br>
+    <span class="vb-cmd">sudo $(which playwright) install-deps chromium</span>
   </div>
   <div class="prereq-grid" style="margin-top:1rem">
     <div class="prereq-card pc-green">
@@ -1715,41 +1727,73 @@
       <div class="phase-subtitle">Run this script — every line must print OK before starting the lab</div>
     </div>
   </div>
-  <p style="font-size:.88rem;color:#444;margin-bottom:.6rem">Create <code>~/web-scraping-lab/check_setup.py</code> and paste the code below:</p>
+  <div class="callout info" style="margin-bottom:.8rem">
+    <strong>Setup script already ran?</strong>
+    <p>The script created <code>check_setup.py</code> in <code>~/web-scraping-lab/</code> and ran it at the end. If you saw <em>All checks passed</em>, you are done. If you saw <em>Playwright Chromium FAILED</em> (or a stack trace instead of that message), apply the fix in the callout below.</p>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin-bottom:.6rem">With your venv active and working directory set to <code>~/web-scraping-lab/</code>, run:</p>
   <div class="verify-block">
-    <span class="vb-label">check_setup.py</span><br>
-    <span style="color:#cba6f7">import</span> sys<br>
-    <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">f"Python: {sys.version}"</span>)<br><br>
-    <span style="color:#cba6f7">try</span>:<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> requests;         <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"requests        OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> bs4;             <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"beautifulsoup4  OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> playwright;      <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"playwright      OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> pandas;          <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"pandas          OK"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">import</span> scrapy;          <span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"scrapy          OK"</span>)<br>
-    <span style="color:#cba6f7">except</span> <span style="color:#f9e2af">ImportError</span> <span style="color:#cba6f7">as</span> e:<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">f"MISSING: {e}"</span>)<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"Re-run: pip install requests beautifulsoup4 playwright pandas scrapy lxml"</span>)<br><br>
-    <span style="color:#6c7086;font-style:italic"># Test that Playwright can launch Chromium</span><br>
-    <span style="color:#cba6f7">from</span> playwright.sync_api <span style="color:#cba6f7">import</span> sync_playwright<br>
-    <span style="color:#cba6f7">with</span> sync_playwright() <span style="color:#cba6f7">as</span> p:<br>
-    &nbsp;&nbsp;b = p.chromium.launch(headless=<span style="color:#cba6f7">True</span>)<br>
-    &nbsp;&nbsp;b.close()<br>
-    &nbsp;&nbsp;<span style="color:#cba6f7">print</span>(<span style="color:#a6e3a1">"Playwright Chromium  OK"</span>)
+    <span class="vb-label">Terminal — run the check</span><br>
+    <span class="vb-cmd">python3 check_setup.py</span>
+  </div>
+  <p style="font-size:.88rem;color:#444;margin:.8rem 0 .4rem">The file contains this code (shown for reference — it was written by the setup script):</p>
+  <div class="code-block">
+    <span class="cb-label">check_setup.py</span><br>
+    <span class="kw">import</span> sys<br>
+    <span class="fn">print</span>(<span class="str">f"Python: {sys.version}\n"</span>)<br>
+    missing = []<br>
+    <span class="kw">for</span> lib <span class="kw">in</span> [<span class="str">"requests"</span>, <span class="str">"bs4"</span>, <span class="str">"playwright"</span>, <span class="str">"pandas"</span>, <span class="str">"scrapy"</span>]:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">try</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__import__(lib)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {lib:&lt;18} OK"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">except</span> <span class="cls">ImportError</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {lib:&lt;18} MISSING"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;missing.<span class="fn">append</span>(lib)<br><br>
+    <span class="kw">try</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b = p.chromium.<span class="fn">launch</span>(headless=<span class="kw">True</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b.<span class="fn">close</span>()<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {'Playwright Chromium':&lt;18} OK"</span>)<br>
+    <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  {'Playwright Chromium':&lt;18} FAILED"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"  → {e}"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"  → Fix: sudo $(which playwright) install-deps chromium"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;missing.<span class="fn">append</span>(<span class="str">"Playwright Chromium"</span>)<br><br>
+    <span class="kw">if</span> missing:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"\n[!] Issues with: {', '.join(missing)}"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"    Python libs:      pip install requests beautifulsoup4 playwright pandas scrapy lxml"</span>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"    Playwright deps:  sudo $(which playwright) install-deps chromium"</span>)<br>
+    <span class="kw">else</span>:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"\nAll checks passed — ready for the lab!"</span>)
   </div>
   <div class="verify-block" style="margin-top:.5rem">
-    <span class="vb-label">Expected Output — all lines must show OK</span><br>
+    <span class="vb-label">Expected output — all lines must show OK</span><br>
     <span class="vb-cmd">python3 check_setup.py</span><br>
     <span class="vb-out">Python: 3.10.12 ...</span><br>
-    <span class="vb-out">requests        OK</span><br>
-    <span class="vb-out">beautifulsoup4  OK</span><br>
-    <span class="vb-out">playwright      OK</span><br>
-    <span class="vb-out">pandas          OK</span><br>
-    <span class="vb-out">scrapy          OK</span><br>
-    <span class="vb-out">Playwright Chromium  OK</span>
+    <span class="vb-out">  requests           OK</span><br>
+    <span class="vb-out">  bs4                OK</span><br>
+    <span class="vb-out">  playwright         OK</span><br>
+    <span class="vb-out">  pandas             OK</span><br>
+    <span class="vb-out">  scrapy             OK</span><br>
+    <span class="vb-out">  Playwright Chromium  OK</span><br>
+    <span class="vb-out"></span><br>
+    <span class="vb-out">All checks passed — ready for the lab!</span>
+  </div>
+  <div class="callout warn" style="margin-top:.8rem">
+    <strong>Playwright Chromium shows FAILED instead of OK?</strong>
+    <p>The Python package installed fine, but Chromium needs extra OS-level libraries. With your venv active, run this one command and then re-run the check:</p>
+    <div class="verify-block" style="margin:.5rem 0 0">
+      <span class="vb-label">Fix</span><br>
+      <span class="vb-comment"># $(which playwright) resolves to the venv binary so sudo can find it</span><br>
+      <span class="vb-cmd">sudo $(which playwright) install-deps chromium</span><br>
+      <span class="vb-cmd">python3 check_setup.py</span>
+    </div>
+    <p style="margin-top:.5rem">If <code>which playwright</code> returns nothing (venv not active), activate first: <code>source ~/web-scraping-lab/venv/bin/activate</code></p>
   </div>
   <div class="callout tip" style="margin-top:.6rem">
     <strong>All green? You are ready to start the lab.</strong>
-    <p>If any line shows <code>MISSING</code>, check that your venv is active (<code>source venv/bin/activate</code>) and re-run the pip install command from Step 3.</p>
+    <p>If any Python lib shows <code>MISSING</code>, check that your venv is active and re-run the pip install from Step 3. For Playwright Chromium failures, use the fix above.</p>
   </div>
 </div>
 
@@ -2171,6 +2215,7 @@
 
 </main>
 </div>
+<footer>
   SRH Hochschule Heidelberg &nbsp;·&nbsp; Data Engineering 1 &nbsp;·&nbsp; Web Data — From Web Services to Web Scraping &nbsp;·&nbsp; Prof. Dr.-Ing. Binh Vu
 </footer>
 
